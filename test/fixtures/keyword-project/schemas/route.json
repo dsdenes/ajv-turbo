@@ -1,0 +1,12 @@
+{
+  "$id": "https://example.com/schemas/route.json",
+  "definitions": {
+    "target": {"type": "number", "port": 8080}
+  },
+  "type": "object",
+  "required": ["path", "target"],
+  "properties": {
+    "path": {"type": "string", "slug": true, "minLength": 3},
+    "target": {"$ref": "#/definitions/target"}
+  }
+}

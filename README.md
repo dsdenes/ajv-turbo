@@ -2,8 +2,9 @@
 
 A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
 `ajv` API and, for schemas that use the core validation keywords of ajv's default
-schema dialect (JSON Schema draft-07) and the formats the host project registers,
-returns the same valid or invalid verdict and the same error report as ajv.
+schema dialect (JSON Schema draft-07), the formats and the custom keywords the
+host project registers, returns the same valid or invalid verdict and the same
+error report as ajv.
 
 ## Covered subset
 
@@ -47,9 +48,52 @@ a string definition leaves non-strings untouched. `validateFormats: false`
 disables every format rule, including the check for formats the project never
 registered.
 
-Out of scope, and not claimed to match ajv: custom keywords, asynchronous
-validation, standalone validators, schema dialects other than draft-07, errors
-raised while compiling an invalid schema, and throughput.
+## Custom keywords
+
+Keywords the host registers as a synchronous validation rule are enforced with
+ajv's calling convention, placement, and error report:
+
+```js
+ajv.addKeyword({
+  keyword: "port",                                     // schema value: the limit
+  type: "number",                                      // only numbers are checked
+  validate: (limit, value, parentSchema, dataCxt) =>
+    Number.isInteger(value) && value >= 1 && value <= limit,
+});
+
+ajv.addKeyword("slug", {validate: (enabled, value) => /^[a-z0-9-]+$/.test(value)});
+// the deprecated two-argument form is accepted and warns as ajv does
+```
+
+- `validate(schemaValue, data, parentSchema, dataCxt)` is called with `this` set
+  to the Ajv instance, where `schemaValue` is the keyword's value in the schema
+  and `dataCxt` is `{instancePath, parentData, parentDataProperty, rootData}`.
+  With `schema: false` in the definition it is called as
+  `validate(data, dataCxt)`.
+- `type` may be one JSON type or an array of them. A keyword declared for a type
+  runs only for values of that type: other values are treated exactly as ajv
+  treats them, and the schema's remaining rules are unaffected. A keyword
+  declared for `integer`, `boolean`, or `null` forms its own rule group, as in
+  ajv.
+- Untyped keywords run after the standard untyped rules; typed keywords run at
+  the end of their type's rule group. Registration order decides the order among
+  keywords in the same group, so error entries appear in ajv's order.
+- A failing keyword reports `{keyword, params: {}, message: must pass "<keyword>
+  keyword validation"}` at the keyword's `schemaPath`. With `errors: true` the
+  rule may assign an array of error objects to the validate function's `errors`
+  property; they are merged with the same `instancePath`/`schemaPath` fill-in
+  ajv applies. `modifying: true` re-reads the value the rule wrote through
+  `dataCxt.parentData`.
+- A keyword registered without a rule (`addKeyword("name")` or a definition
+  without a validate function) is known to the validator but does not take part
+  in validation. `removeKeyword` stops enforcing a keyword; compiled validators
+  keep the keywords they were compiled with.
+
+Out of scope, and not claimed to match ajv: custom keyword forms other than a
+synchronous validation rule (`code`, `macro`, `compile`, `async`, `post`,
+`before`, `implements`, `$data`), asynchronous validation, standalone validators,
+schema dialects other than draft-07, errors raised while compiling an invalid
+schema or an invalid keyword definition, and throughput.
 
 ## Error reports
 
@@ -92,7 +136,7 @@ validate(data);
 
 ```sh
 npm install
-npm test        # verdicts, error reports, formats, and the drop-in project
+npm test        # verdicts, error reports, formats, keywords, and the drop-in projects
 npm run verify  # prints the verdict comparison
 ```
 
@@ -109,6 +153,13 @@ npm run verify  # prints the verdict comparison
   both validators and requires identical verdicts, error reports, and summaries
   across data types and schema positions, in both reporting modes, with
   `validateFormats: false`, and for a strict-mode project.
+- `test/keywords.test.js` registers custom keywords in both validators — untyped
+  and typed, in every schema position, in composite rules, in referenced and
+  registered schemas, with `errors: true`, `modifying`, and `schema: false` — and
+  requires identical verdicts, error reports, summaries, keyword arguments, and
+  validated data under five option combinations. It also runs the project fixture
+  through its normal validation path with ajv, substitutes this package for ajv
+  without editing the project, and requires identical output.
 - `test/drop-in.test.js` copies the existing project fixture, runs its normal
   validation path with ajv, repoints `node_modules/ajv` at this package without
   editing the project's code, schemas, or configuration, runs the same path, and
@@ -117,6 +168,8 @@ npm run verify  # prints the verdict comparison
   The fixture registers its formats with `addFormat` before compiling.
 - `test/fixtures/existing-project` contains the unchanged project used by that
   check.
+- `test/fixtures/keyword-project` contains the unchanged project that registers
+  custom keywords, used by the keyword check.
 
 ## Layout
 

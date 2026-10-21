@@ -1,0 +1,12 @@
+{
+  "$id": "https://example.com/schemas/service.json",
+  "type": "object",
+  "required": ["name", "port"],
+  "properties": {
+    "name": {"type": "string", "slug": true},
+    "port": {"type": "number", "port": 65535},
+    "tags": {"type": "array", "paired": true, "items": {"type": "string", "slug": true}},
+    "owner": {"populated": true}
+  },
+  "additionalProperties": false
+}

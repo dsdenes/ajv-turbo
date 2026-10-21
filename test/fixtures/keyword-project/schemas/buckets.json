@@ -1,0 +1,6 @@
+{
+  "$id": "https://example.com/schemas/buckets.json",
+  "type": "object",
+  "propertyNames": {"type": "string", "slug": true},
+  "additionalProperties": {"type": "array", "paired": true, "items": {"type": "number", "port": 100}}
+}

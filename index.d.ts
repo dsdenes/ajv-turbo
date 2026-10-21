@@ -13,6 +13,32 @@ export type ValidateFunction = ((data: unknown) => boolean) & {
 
 export type FormatValidator = ((data: string) => boolean) | ((data: number) => boolean);
 
+export type JSONType = "string" | "number" | "integer" | "boolean" | "null" | "object" | "array";
+
+export interface DataValidationCxt {
+  instancePath: string;
+  parentData: unknown;
+  parentDataProperty: string | number | undefined;
+  rootData: unknown;
+}
+
+export type KeywordValidate = (
+  schema: unknown,
+  data: unknown,
+  parentSchema?: Record<string, unknown>,
+  dataCxt?: DataValidationCxt,
+) => boolean;
+
+export interface KeywordDefinition {
+  keyword?: string | readonly string[];
+  type?: JSONType | readonly JSONType[];
+  validate?: KeywordValidate;
+  errors?: boolean;
+  modifying?: boolean;
+  schema?: boolean;
+  [key: string]: unknown;
+}
+
 export interface FormatDefinition {
   type?: "string" | "number";
   validate: string | RegExp | FormatValidator;
@@ -66,7 +92,8 @@ export default class Ajv {
   getSchema(ref: string): ValidateFunction | undefined;
   removeSchema(ref?: string | RegExp): this;
   validateSchema(schema: unknown, throwOrLogError?: boolean): boolean | Promise<unknown>;
-  addKeyword(keyword: string | Record<string, unknown>, definition?: unknown): this;
+  addKeyword(keyword: string, definition?: KeywordDefinition): this;
+  addKeyword(definition: KeywordDefinition): this;
   removeKeyword(keyword: string): this;
   addFormat(name: string, format: Format): this;
   addVocabulary(vocabulary: readonly unknown[]): this;
