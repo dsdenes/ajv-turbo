@@ -1,0 +1,6 @@
+{
+  "id": "job-1",
+  "state": "queued",
+  "payload": {"kind": "email", "attempts": 2},
+  "tags": ["a", "b"]
+}

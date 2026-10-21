@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "required": ["value"],
+  "properties": {
+    "value": {"type": "number", "minimum": 1}
+  },
+  "additionalProperties": false
+}

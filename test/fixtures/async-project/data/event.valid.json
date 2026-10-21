@@ -1,0 +1,9 @@
+{
+  "name": "created",
+  "at": 1700000000,
+  "previous": {
+    "id": "job-1",
+    "state": "done",
+    "payload": {"kind": "email"}
+  }
+}

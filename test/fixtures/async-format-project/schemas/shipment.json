@@ -1,0 +1,13 @@
+{
+  "$async": true,
+  "$id": "https://example.test/schemas/shipment.json",
+  "type": "object",
+  "required": ["tracking", "weight", "carrier", "code"],
+  "properties": {
+    "tracking": {"type": "string", "format": "slug"},
+    "weight": {"type": "number", "format": "even"},
+    "carrier": {"type": "string", "format": "carr-prefix"},
+    "code": {"type": "string", "format": "hex"}
+  },
+  "additionalProperties": false
+}

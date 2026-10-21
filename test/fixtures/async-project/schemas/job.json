@@ -1,0 +1,21 @@
+{
+  "$id": "https://example.test/schemas/job.json",
+  "$async": true,
+  "type": "object",
+  "required": ["id", "state", "payload"],
+  "properties": {
+    "id": {"type": "string", "minLength": 3},
+    "state": {"enum": ["queued", "running", "done"]},
+    "payload": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {"type": "string"},
+        "attempts": {"type": "integer", "minimum": 0, "maximum": 5}
+      },
+      "additionalProperties": false
+    },
+    "tags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "additionalProperties": false
+}

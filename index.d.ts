@@ -6,12 +6,25 @@ export interface ErrorObject {
   message?: string;
 }
 
-export type ValidateFunction = ((data: unknown) => boolean) & {
+export interface ValidateFunction<T = unknown> {
+  (data: T): boolean;
   errors?: ErrorObject[] | null;
   schema: unknown;
-};
+  $async?: false;
+}
 
-export type FormatValidator = ((data: string) => boolean) | ((data: number) => boolean);
+export interface AsyncValidateFunction<T = unknown> {
+  (data: T): Promise<T>;
+  errors?: ErrorObject[] | null;
+  schema: unknown;
+  $async: true;
+}
+
+export type AnyValidateFunction<T = unknown> = ValidateFunction<T> | AsyncValidateFunction<T>;
+
+export type FormatValidator =
+  | ((data: string) => boolean | Promise<boolean>)
+  | ((data: number) => boolean | Promise<boolean>);
 
 export type JSONType = "string" | "number" | "integer" | "boolean" | "null" | "object" | "array";
 
@@ -27,12 +40,13 @@ export type KeywordValidate = (
   data: unknown,
   parentSchema?: Record<string, unknown>,
   dataCxt?: DataValidationCxt,
-) => boolean;
+) => boolean | Promise<boolean>;
 
 export interface KeywordDefinition {
   keyword?: string | readonly string[];
   type?: JSONType | readonly JSONType[];
   validate?: KeywordValidate;
+  async?: boolean;
   errors?: boolean;
   modifying?: boolean;
   schema?: boolean;
@@ -42,7 +56,7 @@ export interface KeywordDefinition {
 export interface FormatDefinition {
   type?: "string" | "number";
   validate: string | RegExp | FormatValidator;
-  async?: false;
+  async?: boolean;
 }
 
 export type Format = RegExp | string | FormatValidator | FormatDefinition | true;
@@ -85,11 +99,13 @@ export default class Ajv {
 
   constructor(opts?: Options);
 
-  compile<T = unknown>(schema: unknown): ValidateFunction;
-  validate(schema: unknown, data: unknown): boolean;
-  compileAsync<T = unknown>(schema: unknown): Promise<ValidateFunction>;
+  compile<T = unknown>(schema: {$async: true; [key: string]: unknown}): AsyncValidateFunction<T>;
+  compile<T = unknown>(schema: unknown): ValidateFunction<T>;
+  validate(schema: unknown, data: unknown): boolean | Promise<unknown>;
+  compileAsync<T = unknown>(schema: {$async: true; [key: string]: unknown}): Promise<AsyncValidateFunction<T>>;
+  compileAsync<T = unknown>(schema: unknown): Promise<ValidateFunction<T>>;
   addSchema(schema: unknown, key?: string): this;
-  getSchema(ref: string): ValidateFunction | undefined;
+  getSchema<T = unknown>(ref: string): AnyValidateFunction<T> | undefined;
   removeSchema(ref?: string | RegExp): this;
   validateSchema(schema: unknown, throwOrLogError?: boolean): boolean | Promise<unknown>;
   addKeyword(keyword: string, definition?: KeywordDefinition): this;
@@ -98,5 +114,8 @@ export default class Ajv {
   addFormat(name: string, format: Format): this;
   addVocabulary(vocabulary: readonly unknown[]): this;
   addMetaSchema(schema: unknown, key?: string, validate?: boolean): this;
-  errorsText(errors?: ErrorObject[] | null, options?: {separator?: string; dataVar?: string}): string;
+  errorsText(
+    errors?: ErrorObject[] | null,
+    options?: {separator?: string; dataVar?: string},
+  ): string;
 }
