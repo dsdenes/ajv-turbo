@@ -32,6 +32,7 @@ const ALLOWED_KEYWORDS = new Set([
   "maxLength",
   "minLength",
   "pattern",
+  "format",
   "items",
   "additionalItems",
   "maxItems",

@@ -6,6 +6,16 @@ const Ajv = require("ajv");
 
 const ajv = new Ajv({allErrors: true, strict: true});
 const singleErrorAjv = new Ajv({strict: true});
+
+function registerFormats(instance) {
+  instance.addFormat("handle", /^[a-z][a-z0-9_]*$/);
+  instance.addFormat("even-count", {
+    type: "number",
+    validate: (value) => Number.isInteger(value) && value % 2 === 0,
+  });
+}
+registerFormats(ajv);
+registerFormats(singleErrorAjv);
 const schemaDir = path.join(__dirname, "schemas");
 const dataDir = path.join(__dirname, "data");
 

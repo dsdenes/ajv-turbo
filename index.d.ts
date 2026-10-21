@@ -11,6 +11,16 @@ export type ValidateFunction = ((data: unknown) => boolean) & {
   schema: unknown;
 };
 
+export type FormatValidator = ((data: string) => boolean) | ((data: number) => boolean);
+
+export interface FormatDefinition {
+  type?: "string" | "number";
+  validate: string | RegExp | FormatValidator;
+  async?: false;
+}
+
+export type Format = RegExp | string | FormatValidator | FormatDefinition | true;
+
 export interface Options {
   allErrors?: boolean;
   strict?: boolean | "log";
@@ -21,6 +31,7 @@ export interface Options {
   ownProperties?: boolean;
   unicodeRegExp?: boolean;
   validateFormats?: boolean;
+  formats?: Record<string, Format>;
   [key: string]: unknown;
 }
 
@@ -44,6 +55,7 @@ export default class Ajv {
   opts: Options;
   errors: ErrorObject[] | null;
   schemas: Record<string, unknown>;
+  formats: Record<string, Format>;
 
   constructor(opts?: Options);
 
@@ -56,7 +68,7 @@ export default class Ajv {
   validateSchema(schema: unknown, throwOrLogError?: boolean): boolean | Promise<unknown>;
   addKeyword(keyword: string | Record<string, unknown>, definition?: unknown): this;
   removeKeyword(keyword: string): this;
-  addFormat(name: string, format: unknown): this;
+  addFormat(name: string, format: Format): this;
   addVocabulary(vocabulary: readonly unknown[]): this;
   addMetaSchema(schema: unknown, key?: string, validate?: boolean): this;
   errorsText(errors?: ErrorObject[] | null, options?: {separator?: string; dataVar?: string}): string;

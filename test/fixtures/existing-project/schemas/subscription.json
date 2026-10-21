@@ -1,0 +1,19 @@
+{
+  "$id": "https://example.test/subscription.json",
+  "type": "object",
+  "required": ["handle", "seats", "confirmed"],
+  "additionalProperties": false,
+  "properties": {
+    "handle": {
+      "type": "string",
+      "format": "handle"
+    },
+    "seats": {
+      "type": "integer",
+      "format": "even-count"
+    },
+    "confirmed": {
+      "type": "boolean"
+    }
+  }
+}
