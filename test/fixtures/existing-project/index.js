@@ -5,6 +5,7 @@ const path = require("path");
 const Ajv = require("ajv");
 
 const ajv = new Ajv({allErrors: true, strict: true});
+const singleErrorAjv = new Ajv({strict: true});
 const schemaDir = path.join(__dirname, "schemas");
 const dataDir = path.join(__dirname, "data");
 
@@ -32,22 +33,37 @@ const results = [];
 for (const document of documents) {
   const schema = schemas.get(document.case.split(".")[0]);
   let valid;
+  let errors;
   if (document.case.startsWith("text.")) {
     valid = ajv.validate(schema, document.data);
-    if (!valid && !ajv.errors) throw new Error("ajv did not report errors for invalid data");
+    errors = ajv.errors;
+    if (!valid && !errors) throw new Error("ajv did not report errors for invalid data");
   } else {
     const validate = ajv.compile(schema);
     valid = validate(document.data);
+    errors = validate.errors;
   }
-  results.push({case: document.case, valid});
+  results.push({case: document.case, valid, errors, text: ajv.errorsText(errors)});
+
+  const singleValidate = singleErrorAjv.compile(schema);
+  const singleValid = singleValidate(document.data);
+  results.push({
+    case: `${document.case}.first`,
+    valid: singleValid,
+    errors: singleValidate.errors,
+    text: singleErrorAjv.errorsText(singleValidate.errors),
+  });
 }
 
 const catalog = schemas.get("catalog");
 const catalogRef = ajv.getSchema(catalog.$id);
 if (!catalogRef) throw new Error("catalog schema was not registered");
+const catalogValid = catalogRef(JSON.parse(fs.readFileSync(path.join(dataDir, "catalog.valid.json"), "utf8")));
 results.push({
   case: "catalog.registered.valid",
-  valid: catalogRef(JSON.parse(fs.readFileSync(path.join(dataDir, "catalog.valid.json"), "utf8"))),
+  valid: catalogValid,
+  errors: catalogRef.errors,
+  text: ajv.errorsText(catalogRef.errors),
 });
 
 for (const result of results) process.stdout.write(JSON.stringify(result) + "\n");
