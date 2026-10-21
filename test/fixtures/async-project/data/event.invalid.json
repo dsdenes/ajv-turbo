@@ -1,0 +1,9 @@
+{
+  "name": "retry",
+  "at": -1,
+  "previous": {
+    "id": "x",
+    "state": "queued",
+    "payload": {"kind": "email", "attempts": 7}
+  }
+}

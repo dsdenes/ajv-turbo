@@ -53,13 +53,22 @@ for (const document of documents) {
     valid = validate(document.data);
     errors = validate.errors;
   }
-  results.push({case: document.case, valid, errors, text: ajv.errorsText(errors)});
+  results.push({
+    case: document.case,
+    valid,
+    synchronous: typeof valid === "boolean",
+    promise: valid instanceof Promise,
+    errors,
+    text: ajv.errorsText(errors),
+  });
 
   const singleValidate = singleErrorAjv.compile(schema);
   const singleValid = singleValidate(document.data);
   results.push({
     case: `${document.case}.first`,
     valid: singleValid,
+    synchronous: typeof singleValid === "boolean",
+    promise: singleValid instanceof Promise,
     errors: singleValidate.errors,
     text: singleErrorAjv.errorsText(singleValidate.errors),
   });
@@ -72,6 +81,8 @@ const catalogValid = catalogRef(JSON.parse(fs.readFileSync(path.join(dataDir, "c
 results.push({
   case: "catalog.registered.valid",
   valid: catalogValid,
+  synchronous: typeof catalogValid === "boolean",
+  promise: catalogValid instanceof Promise,
   errors: catalogRef.errors,
   text: ajv.errorsText(catalogRef.errors),
 });

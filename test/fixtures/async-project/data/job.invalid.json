@@ -1,0 +1,6 @@
+{
+  "id": "j",
+  "state": "lost",
+  "payload": {"kind": "email", "attempts": 9, "extra": true},
+  "tags": ["a", "a"]
+}

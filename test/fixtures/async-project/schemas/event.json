@@ -1,0 +1,17 @@
+{
+  "$id": "https://example.test/schemas/event.json",
+  "$async": true,
+  "type": "object",
+  "required": ["name", "at"],
+  "properties": {
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]+$"},
+    "at": {"type": "integer", "minimum": 0},
+    "previous": {"$ref": "https://example.test/schemas/job.json"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"name": {"const": "retry"}}},
+      "then": {"required": ["previous"], "properties": {"previous": {}}}
+    }
+  ]
+}

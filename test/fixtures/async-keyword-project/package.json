@@ -1,0 +1,13 @@
+{
+  "name": "async-account-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing Node.js service that validates asynchronously with ajv and its own asynchronous keywords",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

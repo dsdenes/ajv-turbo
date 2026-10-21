@@ -1,0 +1,13 @@
+{
+  "name": "async-orders-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing Node.js service that validates schemas asynchronously with ajv",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

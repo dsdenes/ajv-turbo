@@ -1,0 +1,14 @@
+{
+  "$id": "https://example.test/schemas/account.json",
+  "$async": true,
+  "type": "object",
+  "required": ["handle", "seats", "region"],
+  "properties": {
+    "handle": {"type": "string", "normalize": true, "slug": true},
+    "audit": {"type": "string", "audit": "ok:"},
+    "seats": {"type": "number", "evenSeats": 8},
+    "region": {"type": "string", "present": true},
+    "marker": {"type": "string", "nonEmpty": true}
+  },
+  "additionalProperties": false
+}
