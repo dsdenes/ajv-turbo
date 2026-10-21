@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "minProperties": 1,
+  "propertyNames": {
+    "pattern": "^[a-z][a-z0-9_]*$"
+  },
+  "patternProperties": {
+    "^stock_": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": {
+    "type": "string",
+    "maxLength": 5
+  },
+  "properties": {
+    "level": {
+      "type": "integer"
+    }
+  },
+  "dependencies": {
+    "restock_at": [
+      "level"
+    ]
+  }
+}

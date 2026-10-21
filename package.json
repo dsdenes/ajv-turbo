@@ -1,0 +1,39 @@
+{
+  "name": "ajv",
+  "version": "8.20.0",
+  "description": "Drop-in JSON Schema validator for ajv, verdict-compatible for core draft-07 validation keywords",
+  "license": "MIT",
+  "main": "index.js",
+  "module": "index.mjs",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    },
+    "./dist/ajv": "./dist/ajv.js",
+    "./dist/ajv.js": "./dist/ajv.js",
+    "./lib/*": "./lib/*",
+    "./dist/refs/*": "./dist/refs/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.d.ts",
+    "lib/",
+    "dist/"
+  ],
+  "engines": {
+    "node": "^24"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "verify": "node test/verify.js"
+  },
+  "devDependencies": {
+    "ajv-reference": "npm:ajv@8.20.0"
+  }
+}

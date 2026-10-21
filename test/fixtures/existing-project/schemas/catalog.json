@@ -1,0 +1,54 @@
+{
+  "$id": "https://example.test/catalog.json",
+  "definitions": {
+    "item": {
+      "type": "object",
+      "required": [
+        "sku",
+        "price"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "sku": {
+          "type": "string",
+          "minLength": 1
+        },
+        "price": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "itemList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/item"
+      },
+      "contains": {
+        "required": [
+          "price"
+        ],
+        "properties": {
+          "price": {
+            "const": 0
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "type": "object",
+  "required": [
+    "items"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "$ref": "#/definitions/itemList"
+    },
+    "featured": {
+      "$ref": "#/definitions/item"
+    }
+  }
+}

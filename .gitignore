@@ -3,3 +3,5 @@
 .omp/extensions
 .omp/skills/
 .worktree/
+node_modules/
+.tmp/
