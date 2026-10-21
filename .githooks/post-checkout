@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Recreate the harness links in every fresh checkout, including
+# `git worktree add`. The links are untracked, so this keeps a new worktree
+# usable without a manual setup step.
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+exec "$root/setup.sh"
