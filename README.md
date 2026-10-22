@@ -226,8 +226,8 @@ registered with `addSchema` (for example the remote schemas used by the publishe
 benchmark suite). The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
-`multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, `$data`, and
-`discriminator`.
+`multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, `$data`,
+`discriminator`, `strict`/`strictSchema`, and `logger`.
 
 ## Formats
 
@@ -297,6 +297,46 @@ resolve against this package: the public `KeywordCxt` and the code helpers
 (`_`, `str`, `stringify`, `nil`, `Name`, `operators`, `or`, `getProperty`) are
 exported where the plugin expects them. The package itself does not depend on
 the plugin; a project that never loads it behaves as before.
+
+## Strict mode
+
+With its default settings the validator makes the same compile-time decisions
+ajv's strict mode makes about schema vocabulary:
+
+```js
+const ajv = new Ajv();
+ajv.compile({type: "string", minLenght: 3});  // throws
+// Error: strict mode: unknown keyword: "minLenght"
+```
+
+- A schema keyword the dialect's vocabulary does not define refuses the schema
+  with ajv's message, at every schema position. Keywords belonging to another
+  dialect are unknown to the selected one: `prefixItems` in draft-07 and
+  2019-09, `dependentRequired` or `unevaluatedProperties` in draft-07, and
+  `additionalItems` in 2020-12. Keywords ajv keeps known in later dialects
+  (`definitions`, `dependencies`, `id`, and `additionalItems` in 2019-09)
+  compile as they do for ajv. Registered custom keywords are known, exactly as
+  in ajv's rule table. ajv never registers `$anchor` as a keyword, so a schema
+  that carries one is refused the same way under the default settings.
+- Only schemas ajv compiles are checked: an unreferenced `definitions` or
+  `$defs` member is not visited until a reference, `getSchema`, or a registered
+  keyword value compiles it.
+- A `format` name with no registered definition refuses the schema with ajv's
+  `unknown format "<name>" ignored in schema at path "<path>"`. A name the
+  project registered with `addFormat` or the `formats` option compiles and
+  judges documents as before. `validateFormats: false` disables both the check
+  and the rule.
+- `strictSchema` selects the vocabulary decision independently of `strict`; a
+  falsy setting turns the unknown-keyword check off, and `"log"` reports it
+  through the logger instead of throwing. As in ajv, a static unknown format is
+  still refused when strictness only reports, while `strictSchema: false`
+  ignores it and logs ajv's warning. When refusal is off, ajv's format rule
+  emits that warning from both of its rule groups, so the message appears twice.
+- `logger` receives those diagnostics: it defaults to `console`, a logger with
+  `log`, `warn`, and `error` methods is used as given, and `logger: false`
+  silences every message from the validator. The same object receives the
+  package's other JSON Schema compile-time messages, so a project that silences
+  its channel observes nothing from this package either.
 
 ## Data references
 
@@ -890,6 +930,18 @@ npm run verify  # prints the verdict comparison
   `unevaluatedProperties`, and schemas that do not use the annotation with the
   option enabled.
 - `test/fixtures/discriminator-project` contains that unchanged project.
+- `test/strict.test.js` runs an unchanged project that relies on ajv's strict
+  mode for schema vocabulary through the draft-07, 2019-09, and 2020-12 entry
+  points. It compiles a schema with an unknown keyword in every position a
+  keyword can take, keywords another dialect owns, and schemas naming an
+  unregistered format; requires ajv's refusal, path, and message; and compares
+  the schemas that compile under `strict: "log"`, `strict: false`,
+  `strictSchema: false`, and `validateFormats: false`, the diagnostics the
+  project's logger receives (including `logger: false`), registered formats
+  and custom keywords, schema registration, and the verdicts, reports, and
+  rewritten documents of schemas that use only defined keywords. Every printed
+  line must match ajv's.
+- `test/fixtures/strict-project` contains that unchanged project.
 - `test/conformance2019.test.js` runs the complete published JSON Schema
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and
