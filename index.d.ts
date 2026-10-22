@@ -204,6 +204,11 @@ export interface Options {
   strict?: boolean | "log";
   strictSchema?: boolean | "log";
   strictNumbers?: boolean;
+  strictTypes?: boolean | "log";
+  strictTuples?: boolean | "log";
+  strictRequired?: boolean | "log";
+  allowUnionTypes?: boolean;
+  allowMatchingProperties?: boolean;
   logger?: Logger | false;
   coerceTypes?: boolean | "array";
   useDefaults?: boolean | "empty";

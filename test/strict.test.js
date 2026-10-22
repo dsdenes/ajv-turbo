@@ -44,6 +44,12 @@ test("an ajv project's strict-mode vocabulary decisions run unchanged", () => {
     assert.strictEqual(positions.length, 35, `${dialect} exercises every keyword position`);
   }
 
+  // Every strictness decision and every setting that governs it is exercised.
+  assert.strictEqual(reference.filter((line) => line.kind === "misplaced").length, 54);
+  assert.strictEqual(reference.filter((line) => line.kind === "overlap").length, 18);
+  assert.strictEqual(reference.filter((line) => line.kind === "required").length, 30);
+  assert.strictEqual(reference.filter((line) => line.kind === "diagnostics").length, 45);
+
   for (const dialect of DIALECTS) {
     for (const [name, expected] of [
       ["root", 'strict mode: unknown keyword: "note"'],
@@ -173,6 +179,115 @@ test("an ajv project's strict-mode vocabulary decisions run unchanged", () => {
         [true, true],
       );
     }
+  }
+
+  // A keyword that cannot act where it is written is refused; with strict
+  // schema checking off the same schema compiles and judges documents.
+  for (const dialect of DIALECTS) {
+    for (const name of [
+      "additionalItemsBesideItems",
+      "thenWithoutIf",
+      "elseWithoutIf",
+      "ifWithoutBranches",
+      "minContainsWithoutContains",
+      "maxContainsWithoutContains",
+      "minContainsZeroWithoutMax",
+      "minContainsAboveMax",
+      "recursiveAnchorFalse",
+    ]) {
+      const refused = find(dialect, "misplaced", name, "default");
+      assert.ok(
+        refused.error !== null && refused.verdicts.length === 0,
+        `${dialect} ${name} is refused`,
+      );
+      const off = find(dialect, "misplaced", name, "strict-schema-off");
+      if (dialect === "2020" && name === "recursiveAnchorFalse") {
+        // The 2020-12 meta-schema rejects the annotation outright.
+        assert.ok(off.error !== null, "the meta-schema refuses the annotation");
+      } else {
+        assert.strictEqual(off.error, null, `${dialect} ${name} compiles`);
+        assert.ok(off.verdicts.length > 0, `${dialect} ${name} validates documents`);
+      }
+    }
+  }
+
+  // A property declared directly and matched by a pattern is refused unless
+  // the project allows the overlap, which then keeps ajv's verdicts.
+  for (const dialect of DIALECTS) {
+    assert.strictEqual(
+      find(dialect, "overlap", "schema", "default").error?.message,
+      "strict mode: property foo matches pattern ^f (use allowMatchingProperties)",
+    );
+    for (const setting of ["allowed", "allowed-first-error", "strict-schema-off"]) {
+      const allowed = find(dialect, "overlap", "schema", setting);
+      assert.strictEqual(allowed.error, null, `${dialect} ${setting}`);
+      assert.strictEqual(allowed.verdicts.length, 3);
+    }
+    assert.deepStrictEqual(
+      find(dialect, "overlap", "schema", "reported").messages,
+      [["warn", "strict mode: property foo matches pattern ^f (use allowMatchingProperties)"]],
+    );
+    assert.deepStrictEqual(find(dialect, "overlap", "schema", "silenced").messages, []);
+  }
+
+  // Required names are checked against declarations and evaluated properties.
+  for (const dialect of DIALECTS) {
+    for (const setting of ["default", "enabled", "disabled", "silenced"]) {
+      const evaluated = find(dialect, "required", "evaluated", setting);
+      assert.strictEqual(evaluated.error, null, `${dialect} ${setting}`);
+      assert.deepStrictEqual(evaluated.messages, []);
+    }
+    assert.strictEqual(
+      find(dialect, "required", "missing", "enabled").error?.message,
+      'strict mode: required property "absent" is not defined at "#" (strictRequired)',
+    );
+    for (const setting of ["default", "disabled", "silenced"]) {
+      const quiet = find(dialect, "required", "missing", setting);
+      assert.strictEqual(quiet.error, null);
+      assert.deepStrictEqual(quiet.messages, []);
+    }
+    assert.strictEqual(
+      find(dialect, "required", "missing", "reported").messages.length,
+      1,
+    );
+  }
+
+  // The type and tuple diagnostics are reported, refused, or ignored by their
+  // own setting; reporting and refusal carry ajv's text.
+  for (const dialect of DIALECTS) {
+    for (const name of ["union", "tuple"]) {
+      const reported = find(dialect, "diagnostics", name, "default");
+      assert.strictEqual(reported.error, null, `${dialect} ${name}`);
+      assert.strictEqual(reported.messages.length, 1, `${dialect} ${name} warns once`);
+      assert.strictEqual(reported.messages[0][0], "warn");
+      assert.strictEqual(
+        find(dialect, "diagnostics", name, "refused").error?.message,
+        reported.messages[0][1],
+      );
+      for (const setting of ["permitted", "silenced", "strict-off"]) {
+        const quiet = find(dialect, "diagnostics", name, setting);
+        assert.strictEqual(quiet.error, null);
+        assert.deepStrictEqual(quiet.messages, []);
+      }
+    }
+    assert.deepStrictEqual(
+      find(dialect, "diagnostics", "union", "union-allowed").messages,
+      [],
+    );
+    const ordered = find(dialect, "diagnostics", "ordered", "default");
+    assert.strictEqual(ordered.error, null);
+    assert.deepStrictEqual(
+      ordered.messages.map((message) => message[1].split(" at ")[0]),
+      [
+        'strict mode: type "string" not allowed by context "object"',
+        "strict mode: use allowUnionTypes to allow union type keyword",
+        dialect === "2020"
+          ? 'strict mode: "prefixItems" is 1-tuple, but minItems or maxItems/items are ' +
+            "not specified or different"
+          : 'strict mode: "items" is 1-tuple, but minItems or maxItems/additionalItems are ' +
+            "not specified or different",
+      ],
+    );
   }
 
   // A registered custom keyword is part of the vocabulary, and the logger

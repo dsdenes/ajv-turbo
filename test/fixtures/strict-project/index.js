@@ -129,6 +129,137 @@ const crossDialect = {
   },
 };
 
+// --- keywords that cannot act where they are written ---------------------
+
+// Each schema is refused under the default settings because the keyword has
+// no effect at that position. With strict schema checking off the same schema
+// compiles and judges its documents.
+const misplacedKeywords = {
+  additionalItemsBesideItems: {
+    schema: {type: "array", items: {type: "number"}, additionalItems: {type: "string"}},
+    documents: [[1, 2], ["a"], [1, "a"]],
+  },
+  thenWithoutIf: {
+    schema: {type: "object", then: {properties: {a: {type: "string"}}}},
+    documents: [{a: "x"}, {a: 1}],
+  },
+  elseWithoutIf: {
+    schema: {type: "object", else: {properties: {a: {type: "string"}}}},
+    documents: [{a: "x"}, {a: 1}],
+  },
+  ifWithoutBranches: {
+    schema: {type: "object", if: {properties: {a: {type: "string"}}}},
+    documents: [{a: "x"}, {a: 1}],
+  },
+  minContainsWithoutContains: {
+    schema: {type: "array", minContains: 2},
+    documents: [[1, 2], []],
+  },
+  maxContainsWithoutContains: {
+    schema: {type: "array", maxContains: 2},
+    documents: [[1, 2], []],
+  },
+  minContainsZeroWithoutMax: {
+    schema: {type: "array", contains: {type: "number"}, minContains: 0},
+    documents: [[], [1, "a"]],
+  },
+  minContainsAboveMax: {
+    schema: {type: "array", contains: {type: "number"}, minContains: 3, maxContains: 2},
+    documents: [[1, 2, 3], [1]],
+  },
+  recursiveAnchorFalse: {
+    schema: {$recursiveAnchor: false, type: "object"},
+    documents: [{}],
+  },
+};
+
+// A property named both directly and through a pattern; the overlap is
+// refused unless the project allows it.
+const overlappingProperty = {
+  schema: {
+    type: "object",
+    properties: {foo: {type: "string"}, other: {type: "number"}},
+    patternProperties: {"^f": {type: "number"}},
+    required: ["foo", "other"],
+  },
+  documents: [{foo: "x", other: 1}, {foo: 1, other: 2}, {"far": 3}],
+};
+
+// Required names: one declared directly, one declared by a sibling branch of
+// the same object, and one nowhere.
+const requiredNames = {
+  evaluated: {
+    schema: {
+      type: "object",
+      properties: {declared: {type: "string"}},
+      allOf: [{properties: {evaluated: {type: "number"}}}],
+      required: ["declared", "evaluated"],
+    },
+    documents: [{declared: "x", evaluated: 1}, {declared: "x"}, {}],
+  },
+  missing: {
+    schema: {
+      type: "object",
+      properties: {declared: {type: "string"}},
+      required: ["declared", "absent"],
+    },
+    documents: [{declared: "x"}, {}],
+  },
+};
+
+// --- strict type and tuple diagnostics ------------------------------------
+
+// A union of several types and a fixed tuple whose length bounds are not
+// stated are reported, not refused, under the default settings.
+const typeDiagnostics = {
+  draft7: {
+    union: {type: ["string", "number"]},
+    tuple: {type: "array", items: [{type: "string"}, {type: "number"}]},
+  },
+  "2019": {
+    union: {type: ["string", "number"]},
+    tuple: {type: "array", items: [{type: "string"}, {type: "number"}]},
+  },
+  "2020": {
+    union: {type: ["string", "number"]},
+    tuple: {type: "array", prefixItems: [{type: "string"}, {type: "number"}]},
+  },
+};
+const typeDocuments = {
+  union: ["text", 1, true],
+  tuple: [["a", 1], ["a", "b"], [1, 2]],
+};
+
+// Several diagnostics at once, to pin their order: the applicator branch is
+// compiled before the object's properties.
+const orderedDiagnostics = {
+  draft7: {
+    type: "object",
+    allOf: [{type: "string"}],
+    properties: {
+      a: {type: ["string", "number"]},
+      b: {type: "array", items: [{type: "string"}]},
+    },
+  },
+  "2019": {
+    type: "object",
+    allOf: [{type: "string"}],
+    properties: {
+      a: {type: ["string", "number"]},
+      b: {type: "array", items: [{type: "string"}]},
+    },
+  },
+  "2020": {
+    type: "object",
+    allOf: [{type: "string"}],
+    properties: {
+      a: {type: ["string", "number"]},
+      b: {type: "array", prefixItems: [{type: "string"}]},
+    },
+  },
+};
+const orderedDocuments = [{a: "x", b: ["y"]}, {a: 1, b: ["y", 2]}];
+
 // --- formats --------------------------------------------------------------
 
 const unknownFormats = {
@@ -307,6 +438,97 @@ for (const [dialect, load] of ENTRIES) {
       ),
     );
   }
+
+  // A keyword that cannot act where it is written refuses the schema; with
+  // strict schema checking off the same schema compiles and judges documents.
+  for (const [name, entry] of Object.entries(misplacedKeywords)) {
+    record(dialect, "misplaced", name, "default", attempt(Ajv, {}, entry.schema, entry.documents));
+    record(
+      dialect,
+      "misplaced",
+      name,
+      "strict-schema-off",
+      attempt(Ajv, {strictSchema: false}, entry.schema, entry.documents),
+    );
+  }
+
+  // A property declared directly and matched by a pattern.
+  for (const [setting, options] of [
+    ["default", {allErrors: true}],
+    ["allowed", {allowMatchingProperties: true, allErrors: true}],
+    ["allowed-first-error", {allowMatchingProperties: true}],
+    ["reported", {strict: "log", allErrors: true}],
+    ["silenced", {strict: "log", logger: false, allErrors: true}],
+    ["strict-schema-off", {strictSchema: false, allErrors: true}],
+  ]) {
+    record(
+      dialect,
+      "overlap",
+      "schema",
+      setting,
+      attempt(Ajv, options, overlappingProperty.schema, overlappingProperty.documents),
+    );
+  }
+
+  // Required names declared directly, by a sibling applicator branch, or
+  // nowhere.
+  for (const [name, entry] of Object.entries(requiredNames)) {
+    for (const [setting, options] of [
+      ["default", {}],
+      ["enabled", {strictRequired: true}],
+      ["disabled", {strictRequired: false}],
+      ["reported", {strictRequired: "log"}],
+      ["silenced", {strictRequired: "log", logger: false}],
+    ]) {
+      record(
+        dialect,
+        "required",
+        name,
+        setting,
+        attempt(Ajv, options, entry.schema, entry.documents),
+      );
+    }
+  }
+
+  // A union of several types and a fixed tuple without length bounds are
+  // diagnosed, refused, or ignored according to their strictness setting.
+  const diagnostics = typeDiagnostics[dialect];
+  for (const name of ["union", "tuple"]) {
+    const setting = name === "union" ? "strictTypes" : "strictTuples";
+    for (const [label, options] of [
+      ["default", {}],
+      ["refused", {[setting]: true}],
+      ["permitted", {[setting]: false}],
+      ["reported", {[setting]: "log"}],
+      ["silenced", {[setting]: "log", logger: false}],
+      ["strict-off", {strict: false}],
+      ...(name === "union" ? [["union-allowed", {allowUnionTypes: true}]] : []),
+    ]) {
+      record(
+        dialect,
+        "diagnostics",
+        name,
+        label,
+        attempt(Ajv, options, diagnostics[name], typeDocuments[name]),
+      );
+    }
+  }
+
+  // Several diagnostics in one schema, to pin their order.
+  record(
+    dialect,
+    "diagnostics",
+    "ordered",
+    "default",
+    attempt(Ajv, {}, orderedDiagnostics[dialect], orderedDocuments),
+  );
+  record(
+    dialect,
+    "diagnostics",
+    "ordered",
+    "reported",
+    attempt(Ajv, {strict: "log"}, orderedDiagnostics[dialect], orderedDocuments),
+  );
 
   // Registered formats through the constructor option, and a format family
   // registered after compilation, still behave as before.

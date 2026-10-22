@@ -239,7 +239,8 @@ The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
 `multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, `$data`,
-`discriminator`, `strict`/`strictSchema`, and `logger`.
+`discriminator`, `strict`/`strictSchema`, `strictTypes`, `strictTuples`,
+`strictRequired`, `allowUnionTypes`, `allowMatchingProperties`, and `logger`.
 
 ## Formats
 
@@ -349,6 +350,37 @@ ajv.compile({type: "string", minLenght: 3});  // throws
   silences every message from the validator. The same object receives the
   package's other JSON Schema compile-time messages, so a project that silences
   its channel observes nothing from this package either.
+- A keyword that cannot act where it is written refuses the schema under the
+  default settings, with ajv's message: `additionalItems` beside an `items`
+  value that is not an array of schemas, `then` or `else` without `if`, `if`
+  without either branch, `maxContains` or `minContains` without `contains`, a
+  `minContains` of zero without `maxContains`, a `minContains` above
+  `maxContains`, and `$recursiveAnchor: false` in 2019-09.
+- A property declared in `properties` and also matched by `patternProperties`
+  refuses the schema with
+  `strict mode: property <name> matches pattern <pattern> (use allowMatchingProperties)`.
+  `allowMatchingProperties: true` permits the overlap, and the schema then
+  judges documents exactly as ajv does.
+- `strictTypes` (default `"log"`) reports `use allowUnionTypes to allow union
+  type keyword` for a `type` array of several non-null types, `type "<t>" not
+  allowed by context "<types>"` where a nested schema contradicts the
+  enclosing type, and `missing type "<t>" for keyword "<k>"` where a keyword's
+  rule cannot run for any allowed type. The message carries the schema path and
+  the `(strictTypes)` marker. `allowUnionTypes: true` permits the union, and
+  `strictTypes: true` refuses what would otherwise be reported.
+- `strictTuples` (default `"log"`) reports a fixed `items` array or
+  `prefixItems` whose length bounds are not stated:
+  `"items" is <n>-tuple, but minItems or maxItems/additionalItems are not
+  specified or different at path "<path>"` (`maxItems/items` in 2020-12).
+- `strictRequired` (default off) refuses a `required` name that neither the
+  same schema's `properties` nor a property evaluated by a sibling applicator
+  branch defines:
+  `required property "<name>" is not defined at "<path>" (strictRequired)`.
+- Each setting follows `strict` when it is not given its own value, exactly as
+  in ajv: `strict: "log"` reports all of them, and `strict: false` turns them
+  all off. A schema that compiles does so under the same schema paths and with
+  the same messages, order, and count as ajv, through the project's logger or
+  silently when it is disabled.
 
 ## Data references
 
@@ -963,7 +995,17 @@ npm run verify  # prints the verdict comparison
   and custom keywords, schema registration, and the verdicts, reports, and
   rewritten documents of schemas that use only defined keywords. Every printed
   line must match ajv's.
-- `test/fixtures/strict-project` contains that unchanged project.
+- `test/fixtures/strict-project` contains that unchanged project. It also
+  exercises a keyword that cannot act where it is written, a property named
+  both directly and by a pattern, required names that are declared, evaluated,
+  or missing, the union-type and tuple diagnostics with each strictness
+  setting, logging disabled, and a schema that produces several diagnostics in
+  order.
+- `test/strict-mode.test.js` compares those strictness scenarios against the
+  published ajv directly, through the draft-07, 2019-09, and 2020-12 entry
+  points: the refusal or acceptance, the exception message, every message the
+  logger receives in order, and the verdict and complete error report of every
+  document validated afterwards.
 - `test/conformance2019.test.js` runs the complete published JSON Schema
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and
