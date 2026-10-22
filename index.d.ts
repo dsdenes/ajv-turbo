@@ -190,12 +190,21 @@ export interface FormatDefinition {
 
 export type Format = RegExp | string | FormatValidator | FormatDefinition | true;
 
+/** The logger ajv reports compile-time diagnostics through. */
+export interface Logger {
+  log(...args: unknown[]): void;
+  warn(...args: unknown[]): void;
+  error(...args: unknown[]): void;
+}
+
 export interface Options {
   allErrors?: boolean;
   verbose?: boolean;
   messages?: boolean;
   strict?: boolean | "log";
+  strictSchema?: boolean | "log";
   strictNumbers?: boolean;
+  logger?: Logger | false;
   coerceTypes?: boolean | "array";
   useDefaults?: boolean | "empty";
   removeAdditional?: boolean | "all" | "failing";
