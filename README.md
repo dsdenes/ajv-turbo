@@ -452,11 +452,31 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   failure, and this package does the same. Rejections that are not a
   `ValidationError` propagate to the caller. `modifying: true` re-reads the value
   the rule wrote through `dataCxt.parentData`.
-- A keyword registered without a rule or a macro (`addKeyword("name")` or a
-  definition with neither a validate function, a compile function, nor a macro)
-  is known to the validator but does not take part in validation.
-  `removeKeyword` stops enforcing a keyword in either form; compiled validators
-  keep the keywords they were compiled with.
+A keyword registered without a rule or a macro (`addKeyword("name")` or a
+definition with neither a validate function, a compile function, nor a macro)
+is known to the validator but does not take part in validation.
+`removeKeyword` stops enforcing a keyword in either form; compiled validators
+keep the keywords they were compiled with.
+
+Definitions can also be supplied when the validator is created. The
+constructor's `keywords` option takes an array of the same definitions — or,
+for projects that still use it, ajv's deprecated name → definition map — and
+`addVocabulary(definitions)` registers an array in bulk:
+
+```js
+const ajv = new Ajv({
+  keywords: [
+    {keyword: "port", type: "number", validate: checkPort},
+    {keyword: "slug", validate: checkSlug},
+  ],
+});
+
+ajv.addVocabulary(moreDefinitions);
+```
+
+Both routes register through the same path as `addKeyword`, after the dialect
+meta-schemas, so rule order, placement, value schemas, rewritten values, and
+error reports are identical however the project supplies its definitions.
 
 Out of scope, and not claimed to match ajv: keyword definitions that contribute
 generated validation code (`code`), the optional declarations described above on
@@ -747,6 +767,13 @@ npm run verify  # prints the verdict comparison
   combinations, including verbose and message-free reporting. It also runs the project fixture through its normal validation
   path with ajv, substitutes this package for ajv without editing the project,
   and requires identical output.
+- `test/programmatic-keywords.test.js` runs an unchanged project that defines
+  all of its custom rules programmatically — on the validator instance and
+  through the constructor's `keywords` option — through the draft-07, 2019-09,
+  and 2020-12 entry points. It requires identical verdicts, reports, and
+  rewritten documents under first-error, complete, message-free, and verbose
+  reporting, including a rule that reports several violations at once, a rule
+  whose rewrite decides a later rule's verdict, a compiled rule, and a macro.
 - `test/keyword-forms.test.js` runs an unchanged project that defines custom
   keywords in both non-rule forms through the draft-07, 2019-09, and 2020-12
   entry points, with all errors and with first-error reporting, and requires the
@@ -840,6 +867,11 @@ npm run verify  # prints the verdict comparison
   custom keywords use schema fragments and validation functions; it selects the
   draft-07, 2019-09, or 2020-12 entry point from `DIALECT` and is used by the
   keyword-forms check.
+- `test/fixtures/programmatic-keywords-project` contains the unchanged project
+  that defines its custom rules programmatically, choosing the registration
+  route (`addKeyword` or the constructor's `keywords` option) from
+  `REGISTRATION` and the dialect from `DIALECT`; it is used by the programmatic
+  keywords check.
 - `test/fixtures/project-2019` contains the unchanged project that imports
   `ajv/dist/2019` and exercises recursive and dynamic references, dependent requirements,
   bounded contains, unevaluated tracking, formats, custom keywords,

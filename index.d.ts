@@ -123,6 +123,7 @@ export interface Options {
   unicodeRegExp?: boolean;
   validateFormats?: boolean;
   formats?: Record<string, Format>;
+  keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
   $data?: boolean;
   [key: string]: unknown;
 }
@@ -193,7 +194,7 @@ export default class Ajv {
   addKeyword(definition: KeywordDefinition): this;
   removeKeyword(keyword: string): this;
   addFormat(name: string, format: Format): this;
-  addVocabulary(vocabulary: readonly unknown[]): this;
+  addVocabulary(vocabulary: readonly (KeywordDefinition | string)[]): this;
   addMetaSchema(schema: unknown, key?: string, validate?: boolean): this;
   errorsText(
     errors?: ErrorObject[] | null,
