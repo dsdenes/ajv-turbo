@@ -1,0 +1,15 @@
+{
+  "name": "keywords-plugin-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project that validates with ajv and loads ajv's official keyword-extension plugin",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^2.1.1",
+    "ajv-keywords": "^5.1.0"
+  }
+}

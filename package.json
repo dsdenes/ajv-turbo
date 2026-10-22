@@ -1,7 +1,7 @@
 {
   "name": "ajv",
   "version": "8.20.0",
-  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-07, 2019-09, and 2020-12 validation, registered formats, registered custom keywords, ajv data references, discriminators, asynchronous validation, and JSON Type Definition validation, text parsing, and text generation",
+  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-07, 2019-09, and 2020-12 validation, the formats and keyword-extension plugins, registered custom keywords, ajv data references, discriminators, asynchronous validation, and JSON Type Definition validation, text parsing, and text generation",
   "license": "MIT",
   "main": "index.js",
   "module": "index.mjs",
@@ -77,6 +77,7 @@
   },
   "devDependencies": {
     "ajv-formats": "^3.0.1",
+    "ajv-keywords": "^5.1.0",
     "ajv-reference": "npm:ajv@8.20.0",
     "benchmark": "^2.1.4"
   }
