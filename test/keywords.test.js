@@ -444,6 +444,130 @@ const CASES = [
       },
     ],
   },
+  {
+    name: "schema fragment keyword",
+    define(ajv) {
+      ajv.addKeyword({keyword: "even", macro: () => ({multipleOf: 2})});
+    },
+    schemas: [
+      {
+        schema: {even: true},
+        documents: [2, 3, "2", null, 1.5],
+      },
+      {
+        schema: {type: "number", minimum: 10, maximum: 100, multipleOf: 3, even: true},
+        documents: [7, 12, 13, 200],
+      },
+      {
+        schema: {type: "object", properties: {n: {type: "number", even: true, maximum: 10}}},
+        documents: [{n: 4}, {n: 3}, {n: "4"}, {}],
+      },
+    ],
+  },
+  {
+    name: "schema fragment keyword declared for a type",
+    define(ajv) {
+      ajv.addKeyword({
+        keyword: "slug",
+        type: "string",
+        macro: () => ({pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"}),
+      });
+    },
+    schemas: [
+      {
+        schema: {slug: true},
+        documents: ["a-b", "A-B", 7, null, true, ["a-b"]],
+      },
+      {
+        schema: {type: "object", properties: {s: {slug: true}}},
+        documents: [{s: "a-b"}, {s: "a b"}, {s: 4}],
+      },
+      {
+        schema: {type: "string", minLength: 4, slug: true},
+        documents: ["ab", "a b", "good-slug"],
+      },
+    ],
+  },
+  {
+    name: "schema fragment keyword with local references",
+    define(ajv) {
+      ajv.addKeyword({keyword: "evenRef", macro: () => ({$ref: "#/definitions/even"})});
+    },
+    schemas: [
+      {
+        schema: {
+          definitions: {even: {multipleOf: 2}},
+          type: "object",
+          properties: {n: {evenRef: true}},
+        },
+        documents: [{n: 4}, {n: 3}, {}],
+      },
+      {
+        schema: {
+          definitions: {even: {multipleOf: 2}},
+          type: "array",
+          items: {evenRef: true},
+        },
+        documents: [[1, 2], [1, 3]],
+      },
+    ],
+  },
+  {
+    name: "schema fragment keyword with a registered reference",
+    define(ajv) {
+      ajv.addKeyword({keyword: "externalEven", macro: (value) => ({$ref: value})});
+    },
+    schemas: [
+      {
+        register(ajv) {
+          ajv.addSchema({$id: "https://example.test/even", multipleOf: 2});
+        },
+        schema: {type: "object", properties: {n: {externalEven: "https://example.test/even"}}},
+        documents: [{n: 4}, {n: 3}, {}],
+      },
+    ],
+  },
+  {
+    name: "nested schema fragment keywords",
+    define(ajv) {
+      ajv.addKeyword({keyword: "innerEven", macro: () => ({multipleOf: 3})});
+      ajv.addKeyword({keyword: "outerEven", macro: () => ({innerEven: true, minimum: 5})});
+    },
+    schemas: [
+      {
+        schema: {outerEven: true},
+        documents: [6, 4, 9, 2],
+      },
+    ],
+  },
+  {
+    name: "schema fragment keyword value drives the substitution",
+    define(ajv) {
+      ajv.addKeyword({keyword: "hasType", macro: (value) => ({type: value})});
+    },
+    schemas: [
+      {
+        schema: {hasType: "string"},
+        documents: ["x", 1, null],
+      },
+      {
+        schema: {hasType: ["number", "boolean"]},
+        documents: [1, true, "x"],
+      },
+    ],
+  },
+  {
+    name: "schema fragment keyword returning a boolean schema",
+    define(ajv) {
+      ajv.addKeyword({keyword: "always", macro: (value) => value});
+    },
+    schemas: [
+      {
+        schema: {type: "object", properties: {a: {always: true}, b: {always: false}}},
+        documents: [{a: 1, b: 2}, {a: 1}, {b: 2}],
+      },
+    ],
+  },
 ];
 
 function buildValidators(testCase, opts) {
@@ -598,6 +722,60 @@ test("a removed keyword no longer takes part in validation", () => {
   assert.strictEqual(ajv.compile({even: true})(3), false);
   ajv.removeKeyword("even");
   assert.strictEqual(ajv.compile({even: true})(3), true);
+});
+
+test("a schema fragment keyword is called once with ajv's arguments", () => {
+  for (const Ajv of [require("ajv-reference"), require("../")]) {
+    const ajv = new Ajv({strict: false});
+    const calls = [];
+    ajv.addKeyword({
+      keyword: "probe",
+      macro: function (schemaValue, parentSchema) {
+        calls.push({receiver: this, schemaValue, parentSchema});
+        return {type: "number"};
+      },
+    });
+    const validate = ajv.compile({type: "object", properties: {n: {probe: 7}}});
+    assert.strictEqual(validate({n: 1}), true);
+    assert.strictEqual(validate({n: "x"}), false);
+    assert.strictEqual(calls.length, 1, "the macro should be expanded once, at compile time");
+    assert.strictEqual(calls[0].receiver, ajv);
+    assert.strictEqual(calls[0].schemaValue, 7);
+    assert.deepStrictEqual(calls[0].parentSchema, {probe: 7});
+  }
+});
+
+test("a keyword registered by a schema fragment can be removed", () => {
+  for (const Ajv of [require("ajv-reference"), require("../")]) {
+    const ajv = new Ajv({strict: false});
+    ajv.addKeyword({keyword: "even", macro: () => ({multipleOf: 2})});
+    const beforeRemoval = ajv.compile({even: true});
+    assert.strictEqual(beforeRemoval(3), false);
+    ajv.removeKeyword("even");
+    assert.strictEqual(beforeRemoval(3), false, "a compiled validator keeps its keywords");
+    assert.strictEqual(ajv.compile({even: true})(3), true);
+  }
+});
+
+test("a keyword registered after a schema is added still applies", () => {
+  for (const Ajv of [require("ajv-reference"), require("../")]) {
+    for (const form of ["macro", "function"]) {
+      const ajv = new Ajv({strict: false});
+      ajv.addSchema({
+        $id: "https://example.test/late",
+        type: "object",
+        properties: {n: {lateEven: true}},
+      });
+      ajv.addKeyword(
+        form === "macro"
+          ? {keyword: "lateEven", macro: () => ({multipleOf: 2})}
+          : {keyword: "lateEven", validate: (enabled, value) => value % 2 === 0},
+      );
+      const validate = ajv.compile({$ref: "https://example.test/late"});
+      assert.strictEqual(validate({n: 4}), true, form);
+      assert.strictEqual(validate({n: 3}), false, form);
+    }
+  }
 });
 
 test("a keyword without a validation rule is accepted and not enforced", () => {

@@ -42,10 +42,17 @@ export type KeywordValidate = (
   dataCxt?: DataValidationCxt,
 ) => boolean | Promise<boolean>;
 
+export type KeywordMacro = (
+  schema: unknown,
+  parentSchema?: Record<string, unknown>,
+  context?: unknown,
+) => unknown;
+
 export interface KeywordDefinition {
   keyword?: string | readonly string[];
   type?: JSONType | readonly JSONType[];
   validate?: KeywordValidate;
+  macro?: KeywordMacro;
   async?: boolean;
   errors?: boolean;
   modifying?: boolean;

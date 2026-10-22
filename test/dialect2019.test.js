@@ -25,6 +25,12 @@ function configure(Ajv, options) {
     type: "number",
     validate: (limit, value) => Number.isInteger(value) && value >= 1 && value <= limit,
   });
+  ajv.addKeyword({keyword: "evenFragment", macro: () => ({$ref: "#/$defs/even"})});
+  ajv.addKeyword({
+    keyword: "slugFragment",
+    type: "string",
+    macro: () => ({pattern: "^[a-z]+(?:-[a-z]+)*$"}),
+  });
   ajv.addKeyword({
     keyword: "asyncTag",
     type: "string",
@@ -132,6 +138,22 @@ const EXTENSIONS = {
 };
 
 const CASES = [
+  {
+    name: "keywords defined by schema fragments",
+    schema: {
+      type: "object",
+      $defs: {even: {multipleOf: 2}},
+      properties: {n: {evenFragment: true}, s: {slugFragment: true}},
+      required: ["n"],
+    },
+    documents: [
+      {n: 4, s: "abc-def"},
+      {n: 3, s: "abc-def"},
+      {n: 4, s: "ABC"},
+      {n: "4", s: "abc"},
+      {},
+    ],
+  },
   {
     name: "recursive references with dependent requirements and unevaluated properties",
     schema: RECURSIVE,

@@ -164,6 +164,24 @@ ajv.addKeyword("slug", {validate: (enabled, value) => /^[a-z0-9-]+$/.test(value)
 // the deprecated two-argument form is accepted and warns as ajv does
 ```
 
+A keyword may instead be defined by a schema fragment that stands in for it —
+ajv's macro form. The fragment is compiled at the keyword's location, so the
+verdict and the report are the ones the fragment itself produces, followed by
+ajv's entry for the keyword:
+
+```js
+ajv.addKeyword({
+  keyword: "even",
+  type: "number",
+  macro: () => ({multipleOf: 2}),
+});
+
+ajv.addKeyword({
+  keyword: "reuse",
+  macro: (reference) => ({$ref: reference}),            // "https://example.test/even"
+});
+```
+
 An asynchronous rule is used only by a schema marked `$async: true`; ajv rejects
 a synchronous schema that uses one with `async keyword in sync schema`.
 
@@ -172,11 +190,20 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   and `dataCxt` is `{instancePath, parentData, parentDataProperty, rootData}`.
   With `schema: false` in the definition it is called as
   `validate(data, dataCxt)`.
+- `macro(schemaValue, parentSchema)` is called once per schema location, with
+  `this` set to the Ajv instance, when the schema is compiled. Its return value
+  is validated as a schema (unless `validateSchema: false`) and compiled where
+  the keyword stands: references inside it resolve as they do in any other
+  subschema, including pointers into the parent schema and schemas registered
+  with `addSchema`. A fragment that rejects the document reports its own entries
+  under `<schemaPath>/<keyword>`, then `must pass "<keyword>" keyword validation`
+  at the keyword, exactly as ajv reports a macro failure. A definition that
+  carries both `macro` and `validate` is executed as a macro, as in ajv.
 - `type` may be one JSON type or an array of them. A keyword declared for a type
   runs only for values of that type: other values are treated exactly as ajv
   treats them, and the schema's remaining rules are unaffected. A keyword
   declared for `integer`, `boolean`, or `null` forms its own rule group, as in
-  ajv.
+  ajv. This applies to both forms.
 - Untyped keywords run after the standard untyped rules; typed keywords run at
   the end of their type's rule group. Registration order decides the order among
   keywords in the same group, so error entries appear in ajv's order.
@@ -190,13 +217,14 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   failure, and this package does the same. Rejections that are not a
   `ValidationError` propagate to the caller. `modifying: true` re-reads the value
   the rule wrote through `dataCxt.parentData`.
-- A keyword registered without a rule (`addKeyword("name")` or a definition
-  without a validate function) is known to the validator but does not take part
-  in validation. `removeKeyword` stops enforcing a keyword; compiled validators
-  keep the keywords they were compiled with.
+- A keyword registered without a rule or a macro (`addKeyword("name")` or a
+  definition with neither a validate function nor a macro) is known to the
+  validator but does not take part in validation. `removeKeyword` stops
+  enforcing a keyword in either form; compiled validators keep the keywords they
+  were compiled with.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
-validation rule (`code`, `macro`, `compile`, `post`, `before`, `implements`,
+validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
 `$data`), standalone validators, schema dialects other than draft-07, 2019-09,
 and 2020-12 (JSON Type Definition remains later work), errors raised while
 compiling an invalid keyword definition, and throughput.
@@ -372,10 +400,18 @@ npm run verify  # prints the verdict comparison
 - `test/keywords.test.js` registers custom keywords in both validators — untyped
   and typed, in every schema position, in composite rules, in referenced and
   registered schemas, with `errors: true`, `modifying`, and `schema: false` — and
-  requires identical verdicts, error reports, summaries, keyword arguments, and
-  validated data under five option combinations. It also runs the project fixture
-  through its normal validation path with ajv, substitutes this package for ajv
-  without editing the project, and requires identical output.
+  with both definition forms: validation functions and macros whose returned
+  schema stands in for the keyword. It requires identical verdicts, error
+  reports, summaries, keyword arguments, and validated data under five option
+  combinations. It also runs the project fixture through its normal validation
+  path with ajv, substitutes this package for ajv without editing the project,
+  and requires identical output.
+- `test/keyword-forms.test.js` runs an unchanged project that defines custom
+  keywords in both non-rule forms through the draft-07, 2019-09, and 2020-12
+  entry points, with all errors and with first-error reporting, and requires the
+  same verdicts and printed reports as ajv. The project exercises typed and
+  untyped macros, fragments that refer to local and registered schemas, a
+  function that reports its own error entries, and keyword removal.
 - `test/drop-in.test.js` copies the existing project fixture, runs its normal
   validation path with ajv, repoints `node_modules/ajv` at this package without
   editing the project's code, schemas, or configuration, runs the same path, and
@@ -410,6 +446,10 @@ npm run verify  # prints the verdict comparison
   check.
 - `test/fixtures/keyword-project` contains the unchanged project that registers
   custom keywords, used by the keyword check.
+- `test/fixtures/keyword-forms-project` contains the unchanged project whose
+  custom keywords use schema fragments and validation functions; it selects the
+  draft-07, 2019-09, or 2020-12 entry point from `DIALECT` and is used by the
+  keyword-forms check.
 - `test/fixtures/project-2019` contains the unchanged project that imports
   `ajv/dist/2019` and exercises recursive and dynamic references, dependent requirements,
   bounded contains, unevaluated tracking, formats, custom keywords,
