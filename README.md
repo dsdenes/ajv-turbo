@@ -442,9 +442,23 @@ const validateDocument = require("./validate");   // no build step
   generated validator exactly as they do through a directly compiled one.
 - A `$async` schema generates an asynchronous validator that resolves with the
   validated document and rejects with an error carrying `errors`, matching
-  ajv's generated asynchronous validators. Standalone generation for other
-  dialects, registered formats, and registered custom keywords is not claimed
-  to match ajv.
+  ajv's generated asynchronous validators.
+- Registered formats and registered custom keywords are carried into the
+  generated module by the entry points that support them: draft-07, 2019-09,
+  and 2020-12. A format defined by a RegExp or a pattern string is embedded
+  directly. Any other format definition needs the code ajv's `code.formats`
+  option names, and the generated module resolves its formats from that
+  expression at load time; without it, generation fails with ajv's
+  `CodeGen: "code" for formats… not defined` error. The `_`, `str`,
+  `stringify`, `nil`, and `Name` code helpers are exported as ajv exports them,
+  so a project that builds that expression keeps working. Custom validation rules,
+  synchronous or asynchronous, and macro keywords are embedded as source, so
+  the generated validator enforces the same rule with the same error report as
+  a validator compiled on the instance. A definition that cannot be carried as
+  source fails generation with ajv's error instead of being ignored. Because a
+  rule travels as its own source, it must be self-contained: a function that
+  closes over values defined outside its body cannot see them in the generated
+  module.
 - `ajv/dist/standalone/instance` provides ajv's `AjvPack` wrapper, which
   generates and evaluates each compiled validator in memory.
 - `dist/runtime/ucs2length`, `dist/runtime/equal`, and

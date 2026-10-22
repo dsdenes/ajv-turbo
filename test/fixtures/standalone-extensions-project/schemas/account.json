@@ -1,0 +1,11 @@
+{
+  "$id": "https://standalone.example/account",
+  "type": "object",
+  "properties": {
+    "id": {"type": "string", "format": "hex"},
+    "slug": {"type": "string", "format": "slug"},
+    "amount": {"type": "number", "format": "positive"},
+    "limit": {"type": "number", "even": true}
+  },
+  "required": ["id", "slug", "amount"]
+}

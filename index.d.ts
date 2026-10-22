@@ -106,9 +106,38 @@ export declare class MissingRefError extends Error {
   missingSchema: string;
 }
 
+/** A code identifier, accepted by the code helpers. */
+export declare class Name {
+  constructor(name: string);
+  toString(): string;
+}
+
+/** A code expression, accepted by the code helpers. */
+export declare class Code {
+  constructor(parts: string | readonly unknown[]);
+  toString(): string;
+}
+
+/** Builds a code expression from a template, as ajv's `_` does. */
+export declare function _(
+  strings: TemplateStringsArray | readonly string[],
+  ...values: unknown[]
+): Code;
+export declare function str(
+  strings: TemplateStringsArray | readonly string[],
+  ...values: unknown[]
+): Code;
+export declare function stringify(value: unknown): Code;
+export declare const nil: Code;
+
 export default class Ajv {
   static ValidationError: typeof ValidationError;
   static MissingRefError: typeof MissingRefError;
+  static _: typeof _;
+  static str: typeof str;
+  static stringify: typeof stringify;
+  static nil: typeof nil;
+  static Name: typeof Name;
   static default: typeof Ajv;
   static Ajv: typeof Ajv;
 
