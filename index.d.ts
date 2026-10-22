@@ -59,13 +59,42 @@ export type KeywordMacro = (
   context?: unknown,
 ) => unknown;
 
+export type KeywordCompile = (
+  schema: unknown,
+  parentSchema?: Record<string, unknown>,
+  context?: unknown,
+) => KeywordValidate | undefined;
+
+export interface KeywordErrorContext {
+  keyword: string;
+  schemaType: readonly JSONType[];
+  schema: unknown;
+  schemaValue?: unknown;
+  parentSchema: Record<string, unknown>;
+  data: unknown;
+  params: Record<string, unknown>;
+}
+
+export interface KeywordErrorDefinition {
+  message?: string | ((context: KeywordErrorContext) => string);
+  params?:
+    | Record<string, unknown>
+    | ((context: KeywordErrorContext) => Record<string, unknown>);
+}
+
 export interface KeywordDefinition {
   keyword?: string | readonly string[];
   type?: JSONType | readonly JSONType[];
   schemaType?: JSONType | readonly JSONType[];
   $data?: boolean;
   validate?: KeywordValidate;
+  compile?: KeywordCompile;
   macro?: KeywordMacro;
+  metaSchema?: unknown;
+  post?: boolean;
+  before?: string;
+  implements?: readonly string[];
+  $dataError?: KeywordErrorDefinition;
   async?: boolean;
   errors?: boolean;
   modifying?: boolean;

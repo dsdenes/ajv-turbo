@@ -348,6 +348,45 @@ ajv.addKeyword({
 });
 ```
 
+A keyword may also be defined by a rule compiled once from its value. The
+compile step runs when the schema is compiled, once per schema location, and
+returns the function that validates each document:
+
+```js
+ajv.addKeyword({
+  keyword: "multiple",
+  type: "number",
+  compile(divisor) {                                  // runs at compile time
+    return (value) => value % divisor === 0;          // runs per document
+  },
+});
+```
+
+The remaining declarations ajv accepts on a definition are honoured as well:
+
+```js
+ajv.addKeyword({
+  keyword: "port",
+  metaSchema: {type: "integer", minimum: 1, maximum: 65535},  // value schema
+  validate: () => true,
+});
+
+ajv.addKeyword({keyword: "owner", type: "object", before: "required", validate: check});
+ajv.addKeyword({keyword: "approved", post: true, validate: check});
+ajv.addKeyword({keyword: "bounded", implements: ["lowerBound", "upperBound"], validate: check});
+
+ajv.addKeyword({
+  keyword: "underLimit",
+  $data: true,
+  schemaType: "number",
+  $dataError: {
+    message: ({keyword}) => `"${keyword}" needs a number from the document`,
+    params: () => ({reason: "document value"}),
+  },
+  validate: (limit, value) => value <= limit,
+});
+```
+
 An asynchronous rule is used only by a schema marked `$async: true`; ajv rejects
 a synchronous schema that uses one with `async keyword in sync schema`.
 
@@ -356,6 +395,34 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   and `dataCxt` is `{instancePath, parentData, parentDataProperty, rootData}`.
   With `schema: false` in the definition it is called as
   `validate(data, dataCxt)`.
+- `compile(schemaValue, parentSchema)` is called once per schema location, with
+  `this` set to the Ajv instance, when the schema is compiled. Its return value
+  is the function that validates each document and is called as
+  `validate(data, dataCxt)`, exactly as ajv calls a compiled rule. A keyword
+  that declares both `compile` and `validate` uses the compiled rule for a
+  literal value and the `validate` function when the value is a data reference.
+  A compile step that returns `undefined` fails compilation with ajv's
+  `keyword "<keyword>" failed to compile`.
+- `metaSchema` is the schema the keyword's value must satisfy. It is compiled
+  when the keyword is registered and checked when a schema that uses the keyword
+  is compiled; an inadmissible value fails compilation with ajv's
+  `keyword "<keyword>" value is invalid at path "<schema path>": <reason>`
+  (logged instead of thrown when `validateSchema: "log"`). With the `$data`
+  option, a reference stands in for the value and the resolved value is checked
+  against the same schema at validation time.
+- `before` names the keyword this one runs before, within the same rule group;
+  a name that is not in the group appends the keyword and warns as ajv does.
+  `post: true` runs the keyword after every other group, including the typed
+  groups, and cannot be combined with `type`. `implements` names keywords this
+  definition stands in for: they are registered as known keywords, and the rule
+  runs when a schema uses any of them, receiving `undefined` as its schema
+  value.
+- `$dataError` supplies the report for a document-sourced value the keyword
+  cannot use — a value of the wrong `schemaType`, or one its `metaSchema`
+  rejects. Its `message(context)` and `params(context)` functions are called
+  with `{keyword, schemaType, schema, parentSchema, data}`; without it, ajv's
+  generic `"<keyword>" keyword must be <type> ($data)` (or
+  `"<keyword>" keyword is invalid ($data)`) is reported.
 - `macro(schemaValue, parentSchema)` is called once per schema location, with
   `this` set to the Ajv instance, when the schema is compiled. Its return value
   is validated as a schema (unless `validateSchema: false`) and compiled where
@@ -371,8 +438,10 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   declared for `integer`, `boolean`, or `null` forms its own rule group, as in
   ajv. This applies to both forms.
 - Untyped keywords run after the standard untyped rules; typed keywords run at
-  the end of their type's rule group. Registration order decides the order among
-  keywords in the same group, so error entries appear in ajv's order.
+  the end of their type's rule group. `before` moves a keyword to the named
+  rule's place and `post` moves it after every group. Registration order decides
+  the order among keywords in the same place, so error entries appear in ajv's
+  order and first-error reporting stops at the same entry.
 - A failing keyword reports `{keyword, params: {}, message: must pass "<keyword>
   keyword validation"}` at the keyword's `schemaPath`. With `errors: true` the
   rule may assign an array of error objects to the validate function's `errors`
@@ -384,17 +453,18 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   `ValidationError` propagate to the caller. `modifying: true` re-reads the value
   the rule wrote through `dataCxt.parentData`.
 - A keyword registered without a rule or a macro (`addKeyword("name")` or a
-  definition with neither a validate function nor a macro) is known to the
-  validator but does not take part in validation. `removeKeyword` stops
-  enforcing a keyword in either form; compiled validators keep the keywords they
-  were compiled with.
+  definition with neither a validate function, a compile function, nor a macro)
+  is known to the validator but does not take part in validation.
+  `removeKeyword` stops enforcing a keyword in either form; compiled validators
+  keep the keywords they were compiled with.
 
-Out of scope, and not claimed to match ajv: custom keyword forms other than a
-validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`),
-a definition's `$dataError` and `metaSchema` fields, the JSON Type Definition
-parser, schema dialects other than draft-07, 2019-09, 2020-12, and JSON Type
-Definition, errors raised while compiling an invalid keyword definition, and
-throughput.
+Out of scope, and not claimed to match ajv: keyword definitions that contribute
+generated validation code (`code`), the optional declarations described above on
+the JSON Type Definition entry point, the JSON Type Definition parser, standalone
+generation of those declarations (a generated validator carries the validation
+rules and macros it carried before), schema dialects other than draft-07,
+2019-09, 2020-12, and JSON Type Definition, errors raised while compiling an
+invalid keyword definition, and throughput.
 
 ## Asynchronous validation
 
