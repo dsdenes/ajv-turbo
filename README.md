@@ -223,7 +223,19 @@ verdict:
 Boolean schemas and references are supported, including `$id` base changes,
 location-independent anchors, JSON pointers, recursive schemas, and schemas
 registered with `addSchema` (for example the remote schemas used by the published
-benchmark suite). The Ajv options that affect verdicts or error reports are
+benchmark suite).
+
+Schemas may also be supplied when the validator is constructed, through the
+`schemas` option: an array of schemas carrying identifiers, or a collection
+mapping a name to each schema. They are validated against the dialect
+meta-schema, available through `getSchema` by identifier or by the name they
+were given, and resolve each other's references without a further registration
+step, exactly as schemas registered with `addSchema` do. A collection ajv
+refuses at construction — repeated identifiers, or a member its meta-schema
+rejects — is refused here with the same message, and construction yields no
+validator.
+
+The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
 `multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, `$data`,
@@ -905,6 +917,16 @@ npm run verify  # prints the verdict comparison
   project runs first with ajv and then with this package in ajv's place; every
   printed report and `errorsText` summary must match.
 - `test/fixtures/report-options-project` contains that unchanged project.
+- `test/constructor-schemas.test.js` runs an unchanged project that supplies its
+  schemas through the constructor's `schemas` option as a list and as a named
+  collection, then validates through them by identifier and by name. It checks
+  that each supplied schema validates its documents, that one supplied schema
+  resolves another supplied schema without any further registration, and that
+  the printed verdicts, report entries, and `errorsText` summaries match ajv
+  under first-error, complete, verbose, and message-free reporting for the
+  draft-07, 2019-09, 2020-12, and JSON Type Definition entry points. It also
+  compares the messages for the collections ajv refuses at construction.
+- `test/fixtures/constructor-schemas-project` contains that unchanged project.
 - `test/data-references.test.js` runs an unchanged project that enables ajv's
   `$data` option through the draft-07, 2019-09, and 2020-12 entry points. It
   compiles schemas whose keyword values are absolute and relative references,
