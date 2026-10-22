@@ -31,9 +31,11 @@ function firstDiff(actual, expected) {
 // Validates every case document through ajv and the replacement under the same
 // options and requires the verdict, the complete error report, and the
 // human-readable summary to be identical.
-function compareErrors(cases, opts = {}) {
-  const AjvReference = require("ajv-reference");
-  const AjvReplacement = require("../../");
+function compareErrors(
+  cases,
+  opts = {},
+  {AjvReference = require("ajv-reference"), AjvReplacement = require("../../")} = {},
+) {
   const oracle = buildValidator(AjvReference, "oracle", opts);
   const replacement = buildValidator(AjvReplacement, "replacement", opts);
 

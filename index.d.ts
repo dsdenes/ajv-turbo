@@ -119,3 +119,5 @@ export default class Ajv {
     options?: {separator?: string; dataVar?: string},
   ): string;
 }
+
+export {Ajv};

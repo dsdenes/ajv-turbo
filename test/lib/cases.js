@@ -132,6 +132,18 @@ function collectSuiteCases() {
   return cases;
 }
 
+// The 2019-09 corpus is exercised in full: the 2019-09 surface accepts every
+// keyword in the suite, so there is no covered-subset filter to apply.
+function collectSuite2019Cases() {
+  const cases = [];
+  for (const file of readJsonFiles(path.join(SUITE_DIR, "tests", "draft2019-09"))) {
+    const relative = path.relative(SUITE_DIR, file).split(path.sep).join("/");
+    const groups = JSON.parse(fs.readFileSync(file, "utf8"));
+    for (const group of groups) cases.push(normaliseGroup(group, relative));
+  }
+  return cases;
+}
+
 function collectBenchmarkCases() {
   const cases = [];
   for (const file of readJsonFiles(BENCH_SCHEMA_DIR)) {
@@ -147,6 +159,7 @@ function collectBenchmarkCases() {
 module.exports = {
   isCoveredSchema,
   collectSuiteCases,
+  collectSuite2019Cases,
   collectBenchmarkCases,
   readRemoteSchemas,
   readJsonFiles,

@@ -1,6 +1,11 @@
 "use strict";
 
-const {collectSuiteCases, collectBenchmarkCases, readRemoteSchemas} = require("./lib/cases");
+const {
+  collectSuiteCases,
+  collectSuite2019Cases,
+  collectBenchmarkCases,
+  readRemoteSchemas,
+} = require("./lib/cases");
 
 function buildValidator(Ajv, source) {
   const ajv = new Ajv({strict: false});
@@ -18,9 +23,7 @@ function clone(value) {
   return value === undefined ? value : structuredClone(value);
 }
 
-function compare(name, cases) {
-  const AjvReference = require("ajv-reference");
-  const AjvReplacement = require("../");
+function compare(name, cases, {AjvReference = require("ajv-reference"), AjvReplacement = require("../")} = {}) {
   const oracle = buildValidator(AjvReference, "oracle");
   const replacement = buildValidator(AjvReplacement, "replacement");
 
@@ -90,16 +93,21 @@ function print(result) {
 
 if (require.main === module) {
   const suite = compare("json-schema-test-suite draft7 (core keywords)", collectSuiteCases());
+  const suite2019 = compare("json-schema-test-suite draft2019-09", collectSuite2019Cases(), {
+    AjvReference: require("ajv-reference/dist/2019"),
+    AjvReplacement: require("../dist/2019"),
+  });
   const bench = compare("ajv benchmark schemas (core keywords)", collectBenchmarkCases());
   print(suite);
+  print(suite2019);
   print(bench);
-  const failed =
-    suite.mismatches.length > 0 ||
-    bench.mismatches.length > 0 ||
-    suite.compileFailures.length > 0 ||
-    bench.compileFailures.length > 0 ||
-    suite.tests === 0 ||
-    bench.tests === 0;
+  const results = [suite, suite2019, bench];
+  const failed = results.some(
+    (result) =>
+      result.mismatches.length > 0 ||
+      result.compileFailures.length > 0 ||
+      result.tests === 0,
+  );
   if (failed) process.exitCode = 1;
 }
 

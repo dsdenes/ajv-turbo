@@ -1,7 +1,7 @@
 {
   "name": "ajv",
   "version": "8.20.0",
-  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for core draft-07 validation keywords, registered formats, registered custom keywords, and asynchronous validation",
+  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-07 and 2019-09 validation, registered formats, registered custom keywords, and asynchronous validation",
   "license": "MIT",
   "main": "index.js",
   "module": "index.mjs",
@@ -15,6 +15,13 @@
     },
     "./dist/ajv": "./dist/ajv.js",
     "./dist/ajv.js": "./dist/ajv.js",
+    "./dist/2019": {
+      "types": "./dist/2019.d.ts",
+      "import": "./dist/2019.js",
+      "require": "./dist/2019.js",
+      "default": "./dist/2019.js"
+    },
+    "./dist/2019.js": "./dist/2019.js",
     "./lib/*": "./lib/*",
     "./dist/refs/*": "./dist/refs/*",
     "./package.json": "./package.json"

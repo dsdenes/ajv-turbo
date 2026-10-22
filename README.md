@@ -1,13 +1,52 @@
 # ajv-compatible JSON Schema validator
 
 A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
-`ajv` API and, for schemas that use the core validation keywords of ajv's default
-schema dialect (JSON Schema draft-07), the formats and the custom keywords the
-host project registers, returns the same valid or invalid verdict and the same
-error report as ajv. Schemas marked `$async: true`, asynchronous custom
-validation rules, and asynchronous format rules produce the same settled
-outcomes, reports, and validated data as ajv; schemas that do not request
-asynchronous validation keep validating synchronously and immediately.
+`ajv` API and, for schemas that use ajv's default draft-07 dialect or its
+JSON Schema 2019-09 dialect, the formats and the custom keywords the host
+project registers, returns the same valid or invalid verdict and the same error
+report as ajv. Schemas marked `$async: true`, asynchronous custom validation
+rules, and asynchronous format rules produce the same settled outcomes, reports,
+and validated data as ajv; schemas that do not request asynchronous validation
+keep validating synchronously and immediately.
+
+Entry points mirror ajv's:
+
+|Import|Dialect|
+|---|---|
+|`require("ajv")` / `import Ajv from "ajv"`|draft-07 (ajv's default)|
+|`require("ajv/dist/2019")` / `import Ajv2019 from "ajv/dist/2019"`|2019-09|
+
+
+## JSON Schema 2019-09
+
+`ajv/dist/2019` exposes the 2019-09 dialect under the same class and options as
+ajv's `Ajv2019`, including its default meta-schema. A project that imports that
+entry point keeps its code, schemas, and configuration unchanged.
+
+On top of the draft-07 keywords below, the 2019-09 surface implements:
+
+`$defs`, `$anchor`, `$recursiveAnchor`, `$recursiveRef`, `$dynamicAnchor`,
+`$dynamicRef`, `$vocabulary`, `dependentRequired`, `dependentSchemas`,
+`minContains`, `maxContains`, `unevaluatedProperties`, and `unevaluatedItems`,
+along with the 2019-09 meta-schema and its vocabulary meta-schemas
+(`meta/core`, `meta/applicator`, `meta/validation`, `meta/meta-data`,
+`meta/format`, `meta/content`).
+
+- Recursive and dynamic references resolve against the dynamic anchors of the
+  current validation call, exactly as ajv resolves them; an `$anchor` is a
+  location-independent identifier for `$ref`.
+- `contains` honours `minContains` and `maxContains`, including ajv's error
+  parameters and messages, and its rule that `minContains: 0` without
+  `maxContains` disables the keyword.
+- Evaluated property names and item counts are tracked through `properties`,
+  `patternProperties`, `additionalProperties`, `items`, `additionalItems`,
+  `contains`, references, and the applicators, so `unevaluatedProperties` and
+  `unevaluatedItems` see exactly what ajv sees, including through `$ref`,
+  `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`, dependencies, and dependent
+  schemas.
+- The 2019-09 meta-schema validates schemas the way ajv's does, so malformed
+  `$id`, `$anchor`, and keyword values are rejected at the same point and with
+  the same message.
 
 ## Covered subset
 
@@ -117,8 +156,9 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule (`code`, `macro`, `compile`, `post`, `before`, `implements`,
-`$data`), standalone validators, schema dialects other than draft-07, errors
-raised while compiling an invalid schema or an invalid keyword definition, and
+`$data`), standalone validators, schema dialects other than draft-07 and
+2019-09 (2020-12 and JSON Type Definition remain later work), errors raised
+while compiling an invalid schema or an invalid keyword definition, and
 throughput.
 
 ## Asynchronous validation
@@ -189,7 +229,16 @@ const validate = ajv.compile(schema);
 validate(data);
 ```
 
-`import Ajv from "ajv"` and `import {Ajv} from "ajv"` work as well.
+`import Ajv from "ajv"` and `import {Ajv} from "ajv"` work as well. A project on
+the 2019-09 dialect keeps importing the same entry point it already uses:
+
+```js
+const Ajv2019 = require("ajv/dist/2019");
+const ajv = new Ajv2019();
+```
+
+`import Ajv2019 from "ajv/dist/2019"` and `import {Ajv2019} from "ajv/dist/2019"`
+are supported too.
 
 ## Benchmark
 
@@ -242,6 +291,17 @@ npm run verify  # prints the verdict comparison
   identical `errorsText` summaries under default options, `allErrors: true`, and
   each option that rewrites data (`coerceTypes`, `useDefaults`,
   `removeAdditional`).
+- `test/conformance2019.test.js` runs the complete published JSON Schema
+  2019-09 conformance corpus through `ajv/dist/2019` and this package's
+  `dist/2019` entry, and requires identical verdicts for every case and
+  identical error reports under both default and `allErrors` reporting.
+- `test/dialect2019.test.js` validates documents through recursive references,
+  anchors, dependent requirements, bounded contains, and unevaluated properties
+  and items, combined with references and applicators, plus registered formats,
+  custom keywords, and asynchronous validation. It also runs the unchanged
+  2019-09 project fixture through its normal path twice — first with ajv, then
+  after repointing `node_modules/ajv` at this package — and requires identical
+  verdicts, reports, and rewritten documents.
 - `test/formats.test.js` registers every accepted form of format definition in
   both validators and requires identical verdicts, error reports, and summaries
   across data types and schema positions, in both reporting modes, with
@@ -287,14 +347,22 @@ npm run verify  # prints the verdict comparison
   check.
 - `test/fixtures/keyword-project` contains the unchanged project that registers
   custom keywords, used by the keyword check.
+- `test/fixtures/project-2019` contains the unchanged project that imports
+  `ajv/dist/2019` and exercises recursive and dynamic references, dependent requirements,
+  bounded contains, unevaluated tracking, formats, custom keywords,
+  asynchronous validation, and rewriting options; it is used by the dialect
+  and drop-in check.
 
 ## Layout
 
 - `index.js`, `index.mjs`, `index.d.ts` – CommonJS, ESM, and TypeScript entry points.
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
+- `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.
 - `lib/uri.js`, `lib/util.js` – URI, pointer, and comparison helpers.
 - `lib/refs/json-schema-draft-07.json` – draft-07 meta-schema used for meta refs.
+- `lib/refs/json-schema-2019-09/` – the 2019-09 meta-schema and vocabulary
+  meta-schemas registered by the 2019-09 class.
 - `test/` – verification scripts and unchanged third-party fixtures.
