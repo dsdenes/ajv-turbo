@@ -130,6 +130,20 @@ Options that affect a JSON Type Definition verdict or report are honoured:
 for the other dialects, and registered custom keywords work where ajv's
 meta-schema admits them — inside `metadata`.
 
+Custom keyword definitions on this entry point honour the same optional
+declarations ajv honours on the other entry points: `compile`, which prepares a
+rule once for each schema location from the keyword's value instead of running
+a rule per document; `metaSchema`, whose value is compiled when the definition
+is registered and checked against each keyword value while the schema is
+compiled; `before` and `post`, which place the keyword ahead of another rule or
+after every keyword; `implements`, whose names are registered as known keywords
+and make the owning rule run when a schema uses them; and `dependencies`, whose
+companions the parent schema must declare. The refusals carry ajv's text, for
+example `keyword "port" value is invalid at path "/metadata": data must be
+uint16`, `parent schema must have dependencies of owned: tenant,role`, or
+`keyword with "post" flag cannot have "type"`. A definition that contributes
+generated validation code or reads a data reference is still refused here.
+
 `$async` is not part of the dialect (ajv's JSON Type Definition meta-schema
 rejects it), but a schema that carries it compiles with `validateSchema: false`
 and settles through a promise exactly as ajv's does: it resolves with the
