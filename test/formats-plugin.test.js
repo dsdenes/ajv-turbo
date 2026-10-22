@@ -32,11 +32,11 @@ test("ajv's official formats plugin runs unchanged when the replacement takes aj
   assert.strictEqual(hashDirectory(WORK_PROJECT), before, "fixture project was edited");
 
   const count = (label) => reference.filter((result) => result.label === label).length;
-  assert.strictEqual(count("formats"), 288, "every format, dialect, reporting mode, and verdict");
-  assert.strictEqual(count("formats-fast"), 288, "every fast-mode format and verdict");
+  assert.strictEqual(count("formats"), 312, "every format, dialect, reporting mode, and verdict");
+  assert.strictEqual(count("formats-fast"), 312, "every fast-mode format and verdict");
   assert.strictEqual(count("range"), 276, "every range keyword and document");
   assert.strictEqual(count("dependencies"), 12, "the format dependency on both sides");
-  assert.strictEqual(count("lookup"), 48, "every format definition in both modes");
+  assert.strictEqual(count("lookup"), 52, "every format definition in both modes");
   assert.strictEqual(count("lookup-unknown"), 2, "the unknown-format refusal in both modes");
   assert.strictEqual(count("no-plugin"), 42, "projects that never load the plugin");
 

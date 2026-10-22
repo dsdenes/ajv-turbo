@@ -17,6 +17,8 @@ const FORMAT_CASES = {
   date: ["string", "2020-02-29", "not-a-date"],
   time: ["string", "23:59:59Z", "12:60:00Z"],
   "date-time": ["string", "2020-02-29T23:59:59Z", "2020-02-29T12:60:00Z"],
+  "iso-time": ["string", "23:59:59", "12:60:00"],
+  "iso-date-time": ["string", "2020-02-29T23:59:59", "2020-02-29T12:60:00"],
   duration: ["string", "P3Y6M4DT12H30M5S", "P"],
   uri: ["string", "http://example.com/a", "not a uri"],
   "uri-reference": ["string", "//example.com/a", "http://exa mple.com"],

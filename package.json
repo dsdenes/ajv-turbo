@@ -76,7 +76,7 @@
     "bench": "node bench/runner.js"
   },
   "devDependencies": {
-    "ajv-formats": "^2.1.1",
+    "ajv-formats": "^3.0.1",
     "ajv-reference": "npm:ajv@8.20.0",
     "benchmark": "^2.1.4"
   }

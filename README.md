@@ -273,7 +273,8 @@ const validate = ajv.compile({type: "string", format: "email"});
 
 The plugin registers its format definitions through `addFormat`, so the
 `format` keyword judges every format it defines — `date`, `time`, `date-time`,
-`duration`, `uri`, `uri-reference`, `uri-template`, `url`, `email`, `hostname`,
+`iso-time`, `iso-date-time`, `duration`, `uri`, `uri-reference`,
+`uri-template`, `url`, `email`, `hostname`,
 `ipv4`, `ipv6`, `regex`, `uuid`, the JSON-pointer formats, `byte`, `int32`,
 `int64`, `float`, `double`, `password`, and `binary` — with the same verdict,
 error entry, and `errorsText` summary as ajv, through the draft-07, 2019-09, and
