@@ -125,6 +125,13 @@ Options that affect a JSON Type Definition verdict are honoured:
 for the other dialects, and registered custom keywords work where ajv's
 meta-schema admits them — inside `metadata`.
 
+`$async` is not part of the dialect (ajv's JSON Type Definition meta-schema
+rejects it), but a schema that carries it compiles with `validateSchema: false`
+and settles through a promise exactly as ajv's does: it resolves with the
+validated document and rejects with a `ValidationError` carrying the report. A
+synchronous schema that contains an asynchronous subschema is rejected at
+compile time with ajv's message.
+
 ## Covered subset
 
 Schemas may use these draft-07 keywords and the annotations that do not affect a

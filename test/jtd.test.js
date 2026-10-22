@@ -368,6 +368,69 @@ test("a malformed JSON Type Definition schema is rejected where and as ajv rejec
   }
 });
 
+const ASYNC_CASES = [
+  {name: "asynchronous root", schema: {type: "string", $async: true}},
+  {name: "asynchronous members", schema: {$async: true, properties: {x: {type: "string"}}, optionalProperties: {y: {type: "int8"}}}},
+  {name: "asynchronous subschema", schema: {$async: true, properties: {x: {$async: true, type: "int8"}}}},
+  {name: "asynchronous definition", schema: {$async: true, definitions: {s: {ref: "t"}, t: {type: "string"}}, ref: "s"}},
+];
+
+const SYNC_WITH_ASYNC = [
+  {name: "asynchronous subschema in a sync schema", schema: {properties: {x: {$async: true, type: "string"}}}},
+  {name: "asynchronous definition in a sync schema", schema: {definitions: {s: {$async: true, type: "string"}}, ref: "s"}},
+  {
+    name: "asynchronous definition with a reference in a sync schema",
+    schema: {definitions: {s: {$async: true, properties: {x: {ref: "t"}}}, t: {type: "string"}}, ref: "s"},
+  },
+];
+
+async function settle(validate, document) {
+  const data = clone(document);
+  try {
+    const result = validate(data);
+    if (result instanceof Promise) return {async: true, resolved: await result, errors: validate.errors};
+    return {async: false, valid: result, errors: validate.errors, data};
+  } catch (error) {
+    return {rejected: error.constructor.name, errors: error.errors, validation: error.validation};
+  }
+}
+
+test("an asynchronous JSON Type Definition schema settles to ajv's outcome and report", async () => {
+  for (const options of [{validateSchema: false}, {validateSchema: false, allErrors: true}]) {
+    const oracle = new AjvReference(clone(options));
+    const replacement = new AjvReplacement(clone(options));
+    for (const testCase of ASYNC_CASES) {
+      const validateOracle = oracle.compile(clone(testCase.schema));
+      const validateReplacement = replacement.compile(clone(testCase.schema));
+      assert.strictEqual(validateReplacement.$async, validateOracle.$async, testCase.name);
+      for (const document of ["a", 1, null, {}, {x: 1}, {x: "a"}, {x: "a", y: 1}]) {
+        assert.deepStrictEqual(
+          await settle(validateReplacement, document),
+          await settle(validateOracle, document),
+          JSON.stringify({testCase: testCase.name, document}),
+        );
+      }
+    }
+  }
+});
+
+test("an asynchronous JSON Type Definition subschema is rejected where ajv rejects it", () => {
+  for (const {name, schema} of SYNC_WITH_ASYNC) {
+    const oracle = new AjvReference({validateSchema: false});
+    const replacement = new AjvReplacement({validateSchema: false});
+    const oracleCompile = capture(() => {
+      oracle.compile(clone(schema));
+      return "compiled";
+    });
+    const replacementCompile = capture(() => {
+      replacement.compile(clone(schema));
+      return "compiled";
+    });
+    assert.ok(oracleCompile.error !== undefined, `${name}: ajv accepted the schema`);
+    assert.deepStrictEqual(replacementCompile, oracleCompile, name);
+  }
+});
+
 test("the JSON Type Definition entry point keeps ajv's registry behaviour", () => {
   const oracle = new AjvReference();
   const replacement = new AjvReplacement();
