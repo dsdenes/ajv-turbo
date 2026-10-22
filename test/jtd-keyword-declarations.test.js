@@ -59,6 +59,22 @@ test("a JTD project with optional keyword declarations runs unchanged", () => {
     "/properties/b/metadata/even",
   );
 
+  // A definition used at two schema locations prepares the rule at each use;
+  // a definition that refers to itself prepares it once.
+  assert.strictEqual(row("reference count").count, 2);
+  assert.strictEqual(row("reference second fails").valid, false);
+  assert.strictEqual(
+    row("reference second fails").errors[0].schemaPath,
+    "/definitions/d/metadata/even",
+  );
+  assert.strictEqual(row("recursive reference count").count, 1);
+  assert.strictEqual(row("recursive reference valid").valid, true);
+  assert.strictEqual(row("recursive reference nested fails").valid, false);
+  assert.strictEqual(
+    row("recursive reference nested fails").errors[0].instancePath,
+    "/next/value",
+  );
+
   // A prepared rule's own entries reach the report at the keyword's location.
   assert.strictEqual(row("prepared rule errors valid").valid, true);
   assert.deepStrictEqual(row("prepared rule errors fails").errors, [

@@ -182,6 +182,71 @@ function register(instance) {
   }
 }
 
+// A definition used at two schema locations prepares the rule at each use,
+// and a definition that refers to itself prepares it once.
+{
+  const instance = new Ajv({strict: false});
+  let calls = 0;
+  instance.addKeyword({
+    keyword: "even",
+    compile(enabled) {
+      calls++;
+      return (value) => typeof value !== "number" || !enabled || value % 2 === 0;
+    },
+  });
+  const validate = instance.compile({
+    definitions: {d: {type: "int32", metadata: {even: true}}},
+    properties: {a: {ref: "d"}, b: {ref: "d"}},
+  });
+  results.push({case: "reference count", count: calls});
+  for (const [name, document] of [
+    ["valid", {a: 2, b: 4}],
+    ["second fails", {a: 2, b: 3}],
+  ]) {
+    const valid = validate(document);
+    results.push({
+      case: `reference ${name}`,
+      valid,
+      errors: validate.errors,
+      text: instance.errorsText(validate.errors),
+    });
+  }
+
+  const recursive = new Ajv({strict: false});
+  let recursiveCalls = 0;
+  recursive.addKeyword({
+    keyword: "even",
+    compile(enabled) {
+      recursiveCalls++;
+      return (value) => typeof value !== "number" || !enabled || value % 2 === 0;
+    },
+  });
+  const check = recursive.compile({
+    definitions: {
+      node: {
+        optionalProperties: {
+          next: {ref: "node"},
+          value: {type: "int32", metadata: {even: true}},
+        },
+      },
+    },
+    ref: "node",
+  });
+  results.push({case: "recursive reference count", count: recursiveCalls});
+  for (const [name, document] of [
+    ["valid", {value: 2, next: {value: 4}}],
+    ["nested fails", {value: 2, next: {value: 3}}],
+  ]) {
+    const valid = check(document);
+    results.push({
+      case: `recursive reference ${name}`,
+      valid,
+      errors: check.errors,
+      text: recursive.errorsText(check.errors),
+    });
+  }
+}
+
 // --- a value schema ---------------------------------------------------------
 {
   const instance = new Ajv({strict: false});
