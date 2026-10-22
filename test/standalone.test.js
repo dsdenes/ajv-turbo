@@ -22,6 +22,11 @@ function clone(value) {
 // Generated modules load from their own directory so a module a package
 // generated resolves that package's runtime helpers, not this checkout.
 function prepareSides() {
+  // Generated modules load by absolute path; a path reused by a later test
+  // must not resolve to the module a previous test left cached.
+  for (const key of Object.keys(require.cache)) {
+    if (key.startsWith(WORK + path.sep)) delete require.cache[key];
+  }
   fs.rmSync(WORK, {recursive: true, force: true});
   const sides = {};
   for (const side of ["reference", "replacement"]) {
@@ -405,4 +410,377 @@ test("code.source exposes validator source metadata and AjvPack evaluates genera
   assert.strictEqual(packed.validate({type: "integer"}, 2), true);
   assert.strictEqual(packed.validate({type: "integer"}, 2.5), false);
   assert.strictEqual(packed.getSchema("https://example.test/none"), undefined);
+});
+
+// Builds an ajv instance and a replacement that register the same extensions,
+// so a generated module can be compared with the validator compiled on the
+// same instance and with ajv's generated module.
+function extensionPair(setup, options = {}) {
+  const reference = new AjvReference({strict: false, code: {source: true}, ...options});
+  const replacement = new AjvReplacement({strict: false, code: {source: true}, ...options});
+  setup(reference);
+  setup(replacement);
+  return {reference, replacement};
+}
+
+function generatedPair(sides, {reference, replacement}, schema) {
+  const referenceValidate = reference.compile(clone(schema));
+  const replacementValidate = replacement.compile(clone(schema));
+  return {
+    referenceValidate,
+    replacementValidate,
+    reference: load(sides.reference, standaloneReference(reference, referenceValidate)),
+    replacement: load(sides.replacement, standaloneReplacement(replacement, replacementValidate)),
+  };
+}
+
+// ajv cannot generate a validator for a keyword defined by a validate function,
+// so those modules are compared with the instance's validator instead.
+function generatedReplacement(sides, replacement, schema) {
+  const validate = replacement.compile(clone(schema));
+  const loaded = load(sides.replacement, standaloneReplacement(replacement, validate));
+  return {validate, module: loaded.module, file: loaded.file};
+}
+
+function runAll(validate, documents) {
+  const results = [];
+  for (const document of documents) {
+    const data = clone(document);
+    const valid = validate(data);
+    results.push({data, valid, errors: clone(validate.errors)});
+  }
+  return results;
+}
+
+test("generated validators carry registered formats the way ajv's do", () => {
+  const sides = prepareSides();
+  const schema = {
+    type: "object",
+    properties: {
+      hex: {type: "string", format: "hex"},
+      slug: {type: "string", format: "slug"},
+      count: {type: "number", format: "even"},
+    },
+    required: ["hex", "slug"],
+  };
+  // The object format needs the code ajv's `code.formats` names; both packages
+  // must use the same supplied definitions.
+  const formatsCode = "({even: {type: 'number', validate: /^\\d*[02468]$/}})";
+  const {_Code} = require("ajv-reference/dist/compile/codegen/code");
+  const setup = (ajv) => {
+    ajv.addFormat("hex", /^[0-9a-f]+$/);
+    ajv.addFormat("slug", "^[a-z]+(-[a-z]+)*$");
+    ajv.addFormat("even", {type: "number", validate: /^\d*[02468]$/});
+  };
+  const reference = new AjvReference({strict: false, code: {source: true, formats: new _Code(formatsCode)}});
+  const replacement = new AjvReplacement({strict: false, code: {source: true, formats: formatsCode}});
+  setup(reference);
+  setup(replacement);
+  const generated = generatedPair(sides, {reference, replacement}, schema);
+  const documents = [
+    {hex: "deadbeef", slug: "a-b", count: 4},
+    {hex: "XYZ", slug: "a b", count: 3},
+    {hex: "abc", slug: "one", count: 1.5},
+  ];
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.reference.module, documents),
+  );
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.replacementValidate, documents),
+  );
+  unload(generated.reference);
+  unload(generated.replacement);
+});
+
+test("a registered function format uses the code named by code.formats", () => {
+  const sides = prepareSides();
+  const formats =
+    "({prefix: (value) => value.startsWith('x'), positive: {type: 'number', validate: (value) => value > 0}})";
+  const {_Code} = require("ajv-reference/dist/compile/codegen/code");
+  const setup = (ajv) => {
+    ajv.addFormat("prefix", (value) => value.startsWith("x"));
+    ajv.addFormat("positive", {type: "number", validate: (value) => value > 0});
+  };
+  const reference = new AjvReference({strict: false, code: {source: true, formats: new _Code(formats)}});
+  const replacement = new AjvReplacement({strict: false, code: {source: true, formats}});
+  setup(reference);
+  setup(replacement);
+  const generated = generatedPair(sides, {reference, replacement}, {
+    type: "object",
+    properties: {
+      name: {type: "string", format: "prefix"},
+      amount: {type: "number", format: "positive"},
+    },
+    required: ["name", "amount"],
+  });
+  const documents = [
+    {name: "x-ray", amount: 2},
+    {name: "y", amount: 2},
+    {name: "x", amount: 0},
+    {name: "y", amount: -1},
+    {},
+  ];
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.reference.module, documents),
+  );
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.replacementValidate, documents),
+  );
+  unload(generated.reference);
+  unload(generated.replacement);
+});
+
+test("a format ajv cannot carry fails generation with ajv's error", () => {
+  const {reference, replacement} = extensionPair((ajv) => {
+    ajv.addFormat("even", (value) => value % 2 === 0);
+  });
+  const schema = {type: "number", format: "even"};
+  assert.throws(
+    () => standaloneReference(reference, reference.compile(schema)),
+    /CodeGen: "code" for formats0 not defined/,
+  );
+  assert.throws(
+    () => standaloneReplacement(replacement, replacement.compile(schema)),
+    /CodeGen: "code" for formats0 not defined/,
+  );
+});
+
+test("an unused function format does not stop generation", () => {
+  const side = prepareSides().replacement;
+  const ajv = new AjvReplacement({strict: false, code: {source: true}});
+  ajv.addFormat("unused", (value) => value === "never");
+  ajv.addFormat("hex", /^[0-9a-f]+$/);
+  const loaded = load(side, standaloneReplacement(ajv, ajv.compile({type: "string", format: "hex"})));
+  assert.strictEqual(loaded.module("xyz"), false);
+  assert.strictEqual(loaded.module("deadbeef"), true);
+  unload(loaded);
+});
+
+test("generated validators carry registered custom keywords like the instance", () => {
+  const sides = prepareSides();
+  const pair = extensionPair((ajv) => {
+    ajv.addKeyword({
+      keyword: "port",
+      type: "number",
+      validate: (limit, value) => Number.isInteger(value) && value >= 1 && value <= limit,
+    });
+    ajv.addKeyword({
+      keyword: "slug",
+      schema: true,
+      validate(enabled, value) {
+        return !enabled || /^[a-z0-9-]+$/.test(value);
+      },
+    });
+  });
+  const schema = {
+    type: "object",
+    properties: {port: {type: "number", port: 10}, slug: {type: "string", slug: true}},
+    required: ["port", "slug"],
+  };
+  const generated = generatedReplacement(sides, pair.replacement, schema);
+  const documents = [
+    {port: 10, slug: "ok-1"},
+    {port: 11, slug: "ok-1"},
+    {port: 0, slug: "Not A Slug"},
+    {port: 5.5, slug: "ok"},
+  ];
+  assert.deepStrictEqual(runAll(generated.module, documents), runAll(generated.validate, documents));
+  unload(generated);
+});
+
+test("generated validators carry keyword error entries and reporting options", () => {
+  const sides = prepareSides();
+  const setup = (ajv) => {
+    ajv.addKeyword({
+      keyword: "even",
+      type: "number",
+      errors: true,
+      validate: function even(required, value) {
+        if (!required || value % 2 === 0) return true;
+        even.errors = [
+          {keyword: "even", params: {notEven: value}, message: "must be even", instancePath: ""},
+        ];
+        return false;
+      },
+    });
+  };
+  const schema = {
+    type: "object",
+    properties: {value: {type: "number", even: true}},
+    required: ["value"],
+  };
+  for (const options of [
+    {},
+    {allErrors: true},
+    {verbose: true, allErrors: true},
+    {messages: false, verbose: true, allErrors: true},
+  ]) {
+    const pair = extensionPair(setup, options);
+    const generated = generatedReplacement(sides, pair.replacement, schema);
+    const documents = [{value: 3}, {value: 2}, {}];
+    assert.deepStrictEqual(
+      runAll(generated.module, documents),
+      runAll(generated.validate, documents),
+      JSON.stringify(options),
+    );
+    unload(generated);
+  }
+});
+
+test("generated validators carry macro keywords the way ajv's do", () => {
+  const sides = prepareSides();
+  const pair = extensionPair((ajv) => {
+    ajv.addKeyword({keyword: "even", type: "number", macro: () => ({multipleOf: 2})});
+  });
+  const generated = generatedPair(sides, pair, {type: "number", even: true});
+  const documents = [4, 3, 0];
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.reference.module, documents),
+  );
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.replacementValidate, documents),
+  );
+  unload(generated.reference);
+  unload(generated.replacement);
+});
+
+test("asynchronous extensions settle like the instance's validator", async () => {
+  const sides = prepareSides();
+  const formats = "({later: {type: 'string', async: true, validate: async (v) => v === 'ok'}})";
+  const pair = extensionPair(
+    (ajv) => {
+      ajv.addFormat("later", {type: "string", async: true, validate: async (v) => v === "ok"});
+      ajv.addKeyword({
+        keyword: "taken",
+        type: "string",
+        async: true,
+        validate: async (enabled, value) => !enabled || value !== "taken",
+      });
+    },
+    {code: {source: true, formats}},
+  );
+  const schema = {
+    $async: true,
+    type: "object",
+    properties: {code: {type: "string", format: "later"}, name: {type: "string", taken: true}},
+    required: ["code", "name"],
+  };
+  const generated = generatedReplacement(sides, pair.replacement, schema);
+
+  async function settle(validate, document) {
+    try {
+      return {valid: true, data: await validate(clone(document))};
+    } catch (error) {
+      return {valid: false, errors: clone(error.errors)};
+    }
+  }
+  for (const document of [{code: "ok", name: "free"}, {code: "no", name: "taken"}, {code: "ok"}]) {
+    assert.deepStrictEqual(
+      await settle(generated.module, document),
+      await settle(generated.validate, document),
+    );
+  }
+  unload(generated);
+});
+
+test("a keyword whose definition cannot be carried fails generation with ajv's error", () => {
+  const bound = ((schema, data) => data % 2 === 0).bind(null);
+  const {reference, replacement} = extensionPair((ajv) => {
+    ajv.addKeyword({keyword: "even", type: "number", validate: bound});
+  });
+  const schema = {type: "number", even: true};
+  assert.throws(
+    () => standaloneReference(reference, reference.compile(schema)),
+    /CodeGen: "code" for keyword0 not defined/,
+  );
+  assert.throws(
+    () => standaloneReplacement(replacement, replacement.compile(schema)),
+    /CodeGen: "code" for keyword0 not defined/,
+  );
+});
+
+test("2019-09 and 2020-12 standalone validators carry extensions", () => {
+  const Ajv2019 = require("ajv-reference/dist/2019").default;
+  const Ajv2020 = require("ajv-reference/dist/2020").default;
+  const Replacement2019 = require("../dist/2019");
+  const Replacement2020 = require("../dist/2020");
+  const sides = prepareSides();
+  for (const [Reference, Replacement] of [
+    [Ajv2019, Replacement2019],
+    [Ajv2020, Replacement2020],
+  ]) {
+    const schema = {type: "number", even: true};
+    const setup = (ajv) => {
+      ajv.addFormat("even-number", {type: "number", validate: (value) => value % 2 === 0});
+      ajv.addKeyword({keyword: "even", type: "number", macro: () => ({multipleOf: 2})});
+    };
+    const reference = new Reference({
+      strict: false,
+      code: {source: true, formats: "({ 'even-number': {type: 'number', validate: (value) => value % 2 === 0} })"},
+    });
+    const replacement = new Replacement({
+      strict: false,
+      code: {source: true, formats: "({ 'even-number': {type: 'number', validate: (value) => value % 2 === 0} })"},
+    });
+    setup(reference);
+    setup(replacement);
+    const generated = generatedPair(sides, {reference, replacement}, schema);
+    const documents = [2, 3, 0];
+    assert.deepStrictEqual(
+      runAll(generated.replacement.module, documents),
+      runAll(generated.reference.module, documents),
+    );
+    unload(generated.reference);
+    unload(generated.replacement);
+  }
+});
+
+test("an unchanged project keeps its formats and keyword through generated validators", () => {
+  const SOURCE = path.join(__dirname, "fixtures", "standalone-extensions-project");
+  const before = hashDirectory(SOURCE);
+  const {reference, replacement} = runWithBothValidators(
+    SOURCE,
+    path.join(ROOT, ".tmp", "standalone-extensions-project"),
+    {},
+    ["generated"],
+  );
+
+  assert.deepStrictEqual(replacement, reference);
+  assert.strictEqual(hashDirectory(SOURCE), before, "fixture project was edited");
+  assert.strictEqual(reference.length, 9, "expected every dialect and document to be validated");
+  for (const dialect of ["draft7", "2019", "2020"]) {
+    const cases = reference.filter((entry) => entry.dialect === dialect);
+    assert.deepStrictEqual(
+      cases.map((entry) => entry.case),
+      ["account.boundary", "account.invalid", "account.valid"],
+    );
+    assert.strictEqual(cases.find((entry) => entry.case === "account.valid").valid, true);
+    assert.ok(cases.filter((entry) => !entry.valid).every((entry) => entry.errors.length > 0));
+  }
+});
+
+test("a format the supplied code omits fails when the rule runs, as ajv's does", () => {
+  const sides = prepareSides();
+  const {_Code} = require("ajv-reference/dist/compile/codegen/code");
+  const empty = "({})";
+  const setup = (ajv) => {
+    ajv.addFormat("positive", {type: "number", validate: (value) => value > 0});
+  };
+  const reference = new AjvReference({strict: false, code: {source: true, formats: new _Code(empty)}});
+  const replacement = new AjvReplacement({strict: false, code: {source: true, formats: empty}});
+  setup(reference);
+  setup(replacement);
+  const schema = {type: "number", format: "positive"};
+  const generated = generatedPair(sides, {reference, replacement}, schema);
+  for (const generatedSide of [generated.reference.module, generated.replacement.module]) {
+    assert.throws(() => generatedSide(3), TypeError);
+  }
+  unload(generated.reference);
+  unload(generated.replacement);
 });
