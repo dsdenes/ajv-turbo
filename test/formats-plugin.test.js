@@ -35,6 +35,7 @@ test("ajv's official formats plugin runs unchanged when the replacement takes aj
   assert.strictEqual(count("formats"), 288, "every format, dialect, reporting mode, and verdict");
   assert.strictEqual(count("formats-fast"), 288, "every fast-mode format and verdict");
   assert.strictEqual(count("range"), 276, "every range keyword and document");
+  assert.strictEqual(count("dependencies"), 12, "the format dependency on both sides");
   assert.strictEqual(count("lookup"), 48, "every format definition in both modes");
   assert.strictEqual(count("lookup-unknown"), 2, "the unknown-format refusal in both modes");
   assert.strictEqual(count("no-plugin"), 42, "projects that never load the plugin");
@@ -51,6 +52,21 @@ test("ajv's official formats plugin runs unchanged when the replacement takes aj
       }
       if (result.document.low === "2020-02-01" && result.document.high === "2020-05-01") {
         assert.strictEqual(result.result.valid, true, "exclusive limits accept inside the range");
+      }
+    }
+  }
+
+  for (const result of reference) {
+    if (result.label === "dependencies") {
+      if (result.kind === "missing") {
+        assert.strictEqual(
+          result.outcome,
+          "parent schema must have dependencies of formatMaximum: format",
+        );
+      } else if (result.kind === "declared") {
+        assert.strictEqual(result.outcome, "compiled");
+      } else {
+        assert.match(result.outcome, /does not define "compare" function/);
       }
     }
   }

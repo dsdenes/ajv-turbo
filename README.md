@@ -286,7 +286,9 @@ compare the value against a literal or, with `$data`, against a location in the
 document, including a format name read from another field; they report ajv's
 error entry, params, message, and position, and accept the boundary the same
 way. The values the comparison can use are the plugin's `compare` functions, so
-it refuses a format without one at compile time with ajv's message.
+it refuses a format without one at compile time with ajv's message. A range
+keyword also enforces the plugin's `dependencies` declaration: a schema that
+uses one without a `format` keyword is refused with ajv's message.
 
 `addFormats.get(name, mode)` and its `Unknown format "<name>"` refusal work
 unchanged. The plugin's own imports of `ajv` and `ajv/dist/compile/codegen`

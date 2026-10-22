@@ -251,6 +251,30 @@ function testLookup() {
   }
 }
 
+function testDependencies() {
+  const cases = [
+    ["missing", {type: "string", formatMaximum: "2020-01-01"}],
+    ["declared", {type: "string", format: "date", formatMaximum: "2020-01-01"}],
+    ["no-compare-number", {type: "number", format: "int32", formatMaximum: "1"}],
+    ["no-compare-string", {type: "string", format: "email", formatMaximum: "a"}],
+  ];
+  for (const [dialect, load] of ENTRIES) {
+    const Ajv = load();
+    const ajv = makeAjv(Ajv, {});
+    addFormats(ajv);
+    for (const [kind, schema] of cases) {
+      let outcome;
+      try {
+        ajv.compile(schema);
+        outcome = "compiled";
+      } catch (error) {
+        outcome = error.message;
+      }
+      console.log(json({label: "dependencies", dialect, kind, outcome}));
+    }
+  }
+}
+
 function testNoPlugin() {
   const selfFormatSchema = {
     type: "object",
@@ -310,5 +334,6 @@ function testNoPlugin() {
 testFormats("formats", "full", {});
 testFormats("formats-fast", "fast", {});
 testRange();
+testDependencies();
 testLookup();
 testNoPlugin();
