@@ -311,6 +311,57 @@ resolve against this package: the public `KeywordCxt` and the code helpers
 exported where the plugin expects them. The package itself does not depend on
 the plugin; a project that never loads it behaves as before.
 
+### ajv's keyword-extension plugin
+
+A project can load ajv's official `ajv-keywords` plugin without changing it:
+
+```js
+const Ajv = require("ajv");
+const addKeywords = require("ajv-keywords");
+const ajv = new Ajv({$data: true});
+addKeywords(ajv);                    // every keyword the plugin defines
+addKeywords(ajv, "range");           // one keyword
+addKeywords(ajv, ["typeof", "select"]); // several keywords
+const validate = ajv.compile({
+  type: "number",
+  range: [1, 10],
+});
+```
+
+The plugin registers each keyword through `addKeyword`, so every definition
+form it uses runs with ajv's behavior: macros (`range`, `exclusiveRange`,
+`allRequired`, `anyRequired`, `oneRequired`, `prohibited`, `deepProperties`),
+compiled rules (`instanceof`, `uniqueItemProperties`, `dynamicDefaults`), value
+schemas, `dependencies` declarations, and generated code (`typeof`, `regexp`,
+`transform`, `patternRequired`, `deepRequired`, `select`). The generated-code
+keywords receive this package's `KeywordCxt`, which supports the operations the
+plugin calls: `fail`, `pass`, `setParams`, `block$data`, `subschema`, and
+`mergeEvaluated`, plus the generator's control flow, scope values, and the code
+helpers above.
+
+A schema that uses these keywords produces ajv's verdict, error entries,
+`errorsText`, and rewritten document. The plugin's rewriting keywords update
+the document the project holds: `transform` rewrites a string in place wherever
+the value has a container — properties, array items, pattern properties,
+additional properties, referenced schemas, and the selected `select` branch —
+and at the root it rewrites the value the remaining rules see, exactly as ajv
+does; `dynamicDefaults` fills defaults when `useDefaults` is on (`"empty"`
+included). `select` resolves
+literal and `$data` values, supports `selectCases`/`selectDefault`, and reports
+its chosen-case errors and evaluated property names so `unevaluatedProperties`
+and `unevaluatedItems` see the same names ajv sees.
+
+A value the plugin rejects while compiling is refused with the plugin's message
+and no validator is produced — a reversed `range`, an unknown `transform`, an
+unregistered `instanceof` constructor, an unparsable `regexp`, overlapping
+`toEnumCase` values, a missing `select` companion, and the plugin's meta-schema
+refusals all behave as they do with ajv. The plugin's own imports of `ajv` and
+`ajv/dist/compile/codegen` resolve against this package. `ajv-formats` may be
+loaded before or after the keyword plugin with no change to either.
+
+The package itself does not depend on the plugin; a project that never loads it
+behaves as before.
+
 ## Strict mode
 
 With its default settings the validator makes the same compile-time decisions
