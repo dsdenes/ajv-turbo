@@ -13,6 +13,10 @@ const CONFIGURATIONS = [
   ["types coerced", {coerceTypes: true}],
   ["defaults applied", {useDefaults: true}],
   ["additional properties removed", {removeAdditional: "all"}],
+  ["verbose errors", {verbose: true}],
+  ["verbose errors collected", {verbose: true, allErrors: true}],
+  ["message-free errors", {messages: false, allErrors: true}],
+  ["verbose message-free errors", {verbose: true, messages: false, allErrors: true}],
 ];
 
 for (const [name, opts] of CONFIGURATIONS) {
@@ -80,7 +84,9 @@ const EDGE_CASES = [
 ];
 
 for (const edge of EDGE_CASES) {
-  for (const [name, opts] of CONFIGURATIONS.slice(0, 2)) {
+  for (const [name, opts] of CONFIGURATIONS.filter(
+    ([name]) => name === "default" || name === "verbose errors collected" || name === "message-free errors",
+  )) {
     test(`error report edge case matches ajv (${edge.name}, ${name})`, () => {
       const AjvReference = require("ajv-reference");
       const AjvReplacement = require("../");

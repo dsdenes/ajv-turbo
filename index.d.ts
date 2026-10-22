@@ -4,6 +4,9 @@ export interface ErrorObject {
   keyword: string;
   params: Record<string, unknown>;
   message?: string;
+  schema?: unknown;
+  parentSchema?: unknown;
+  data?: unknown;
 }
 
 export interface ValidateSource {
@@ -78,6 +81,8 @@ export type Format = RegExp | string | FormatValidator | FormatDefinition | true
 
 export interface Options {
   allErrors?: boolean;
+  verbose?: boolean;
+  messages?: boolean;
   strict?: boolean | "log";
   strictNumbers?: boolean;
   coerceTypes?: boolean | "array";

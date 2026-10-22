@@ -109,6 +109,10 @@ test("asynchronous schemas produce ajv's outcomes and reports", async () => {
 
   await expectParity(schema, documents);
   await expectParity(schema, documents, {allErrors: true});
+  await expectParity(schema, documents, {verbose: true, allErrors: true});
+  await expectParity(schema, documents, {verbose: true});
+  await expectParity(schema, documents, {messages: false, allErrors: true});
+  await expectParity(schema, documents, {verbose: true, messages: false, allErrors: true});
 
   for (const document of documents) {
     const reference = create(ReferenceAjv);
@@ -148,6 +152,8 @@ test("asynchronous validation follows references and recursive schemas", async (
 
   await expectParity(schema, documents, {}, configure);
   await expectParity(schema, documents, {allErrors: true}, configure);
+  await expectParity(schema, documents, {verbose: true, allErrors: true}, configure);
+  await expectParity(schema, documents, {verbose: true, messages: false, allErrors: true}, configure);
 });
 
 test("asynchronous custom keywords produce ajv's outcomes, reports, and data", async () => {
@@ -212,22 +218,28 @@ test("asynchronous custom keywords produce ajv's outcomes, reports, and data", a
     },
   );
 
+  const auditOptions = (ajv, Ajv) => {
+    ajv.addKeyword({
+      keyword: "audit",
+      type: "string",
+      async: true,
+      errors: true,
+      validate: async (prefix, value) => {
+        if (value.startsWith(prefix)) return true;
+        throw new Ajv.ValidationError([{keyword: "audit", params: {prefix}, message: `must start with ${prefix}`}]);
+      },
+    });
+  };
+  const auditSchema = {$async: true, type: "object", properties: {audit: {type: "string", audit: "ok:"}}};
+  const auditDocuments = [{audit: "ok:created"}, {audit: "nope"}];
+  await expectParity(auditSchema, auditDocuments, {}, auditOptions);
+  await expectParity(auditSchema, auditDocuments, {verbose: true, allErrors: true}, auditOptions);
+  await expectParity(auditSchema, auditDocuments, {messages: false, allErrors: true}, auditOptions);
   await expectParity(
-    {$async: true, type: "object", properties: {audit: {type: "string", audit: "ok:"}}},
-    [{audit: "ok:created"}, {audit: "nope"}],
-    {},
-    (ajv, Ajv) => {
-      ajv.addKeyword({
-        keyword: "audit",
-        type: "string",
-        async: true,
-        errors: true,
-        validate: async (prefix, value) => {
-          if (value.startsWith(prefix)) return true;
-          throw new Ajv.ValidationError([{keyword: "audit", params: {prefix}, message: `must start with ${prefix}`}]);
-        },
-      });
-    },
+    auditSchema,
+    auditDocuments,
+    {verbose: true, messages: false, allErrors: true},
+    auditOptions,
   );
 
   // With `errors: false` ajv does not consume the error list a rule rejects

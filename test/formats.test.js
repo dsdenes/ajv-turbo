@@ -123,7 +123,14 @@ test("format rules produce ajv's verdicts across data types and schema positions
     },
   ];
 
-  const optionSets = [{}, {allErrors: true}, {allErrors: true, coerceTypes: true}];
+  const optionSets = [
+    {},
+    {allErrors: true},
+    {allErrors: true, coerceTypes: true},
+    {verbose: true, allErrors: true},
+    {messages: false, allErrors: true},
+    {verbose: true, messages: false, allErrors: true},
+  ];
   for (const {schema, data} of cases) {
     for (const options of optionSets) compare(schema, data, options);
   }

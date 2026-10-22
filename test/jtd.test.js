@@ -193,6 +193,10 @@ for (const [mode, options] of [
   ["default report", {}],
   ["complete report", {allErrors: true}],
   ["additional properties removed", {removeAdditional: true}],
+  ["verbose report", {verbose: true, allErrors: true}],
+  ["verbose first-error report", {verbose: true}],
+  ["message-free report", {messages: false, allErrors: true}],
+  ["verbose message-free report", {verbose: true, messages: false, allErrors: true}],
 ]) {
   test(`JSON Type Definition verdicts and reports match ajv (${mode})`, () => {
     const oracle = new AjvReference(clone(options));
@@ -400,7 +404,13 @@ async function settle(validate, document) {
 }
 
 test("an asynchronous JSON Type Definition schema settles to ajv's outcome and report", async () => {
-  for (const options of [{validateSchema: false}, {validateSchema: false, allErrors: true}]) {
+  for (const options of [
+    {validateSchema: false},
+    {validateSchema: false, allErrors: true},
+    {validateSchema: false, verbose: true, allErrors: true},
+    {validateSchema: false, messages: false, allErrors: true},
+    {validateSchema: false, verbose: true, messages: false, allErrors: true},
+  ]) {
     const oracle = new AjvReference(clone(options));
     const replacement = new AjvReplacement(clone(options));
     for (const testCase of ASYNC_CASES) {
