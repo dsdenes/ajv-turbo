@@ -1,0 +1,9 @@
+{
+  "id": "sensor-1",
+  "level": 3,
+  "readings": [
+    {"at": "not-a-timestamp", "value": 21.5},
+    {"at": "2020-01-02T03:04:05Z", "value": "warm", "unit": "X"}
+  ],
+  "note": 7
+}

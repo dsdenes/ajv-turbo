@@ -6,7 +6,8 @@ Schema 2019-09 and 2020-12 dialects, or its JSON Type Definition validator,
 together with the formats and the custom keywords the host project registers,
 returns the same valid or invalid verdict and the same error report as ajv.
 JSON Type Definition schemas also produce the same JSON text through the
-serializer.
+serializer and read JSON text at the parser's offsets, reporting the parser's
+messages and positions.
 Schemas marked `$async: true`, asynchronous custom validation rules, and
 asynchronous format rules produce the same settled outcomes, reports, and
 validated data as ajv; schemas that do not request asynchronous validation keep
@@ -163,6 +164,45 @@ const text = serialize(value);
 - Like ajv, the serializer trusts its input: it does not validate the value,
   and a value of the wrong shape can throw a `TypeError` instead of producing
   text.
+
+`compileParser(schema)` returns the function that reads JSON text into a value,
+with ajv's parsed value, messages, and offsets for the same schema and text:
+
+```js
+const AjvJTD = require("ajv/dist/jtd");
+const parse = new AjvJTD().compileParser(schema);
+const value = parse(text);
+if (value === undefined) {
+  console.log(parse.message, parse.position);
+}
+```
+
+- Every form is read: empty schemas through `JSON.parse`, `type` with strings,
+  booleans, numbers, every ranged integer type, and timestamps, `enum`,
+  `elements`, `values`, `properties`/`optionalProperties` with
+  `additionalProperties`, `discriminator` with its mapping, `ref` into
+  `definitions` including recursive definitions, `nullable`, and `metadata`
+  (which, as in ajv, does not change what the parser accepts).
+- The parser is not `JSON.parse`: it skips the same four whitespace characters,
+  accepts the same document shapes, rejects trailing commas and whitespace
+  before an otherwise empty object or array, limits integer digit counts the
+  same way, and consumes strings with the same escape handling. Text that does
+  not fit reports `unexpected token <character>` or `unexpected end` at the
+  same offset ajv reports, and a well-formed document that does not match the
+  schema reports ajv's reason at ajv's offset, for example
+  `integer out of range`, `missing required properties`,
+  `property <name> not allowed`, `discriminator tag not found`,
+  `discriminator value not in schema`, or `invalid timestamp`.
+- `parse.position` and `parse.message` describe the last call and are unset
+  before a successful one. Parsing is synchronous: the value, or `undefined`
+  for a failure, is returned immediately, never as a promise.
+- `allowDate` and `parseDate` behave as they do in ajv; with `parseDate`,
+  timestamps become `Date` values. `int32range: false` relaxes the `int32` and
+  `uint32` digit limit the same way.
+- The schema is validated where ajv validates it, so a schema ajv accepts for
+  parsing compiles and a schema ajv rejects is rejected with the same message,
+  including `No definition <ref>`. Parser compilation shares ajv's schema cache
+  with `compileSerializer`, so an identified schema produces both.
 
 ## Covered subset
 
@@ -558,7 +598,13 @@ npm run verify  # prints the verdict comparison
   `ownProperties`, requiring the same text character for character, the same
   JSON value when the text is read back, the same acceptance and rejection of
   schemas with the same messages, and ajv's serializer caching and registry
-  behaviour.
+  behaviour. It also drives `compileParser` over that whole schemas-and-forms
+  corpus with text covering every form, malformed JSON, schema-invalid
+  documents, integer limits, escapes, and whitespace quirks, under default
+  options, `allowDate`, `parseDate`, and `int32range: false`, requiring the
+  same parsed value, failure reason, position, and synchronous return; it
+  compares parser compilation and caching with ajv's, then runs the unchanged
+  parser project fixture twice and requires identical output.
 - `test/fixtures/jtd-project` contains the unchanged project that imports
   `ajv/dist/jtd` and validates documents against definitions, discriminators,
   dictionaries, nested elements, recursive references, and metadata unions,
@@ -571,6 +617,18 @@ npm run verify  # prints the verdict comparison
   and additional members, discriminators, dictionaries, references, nullable
   forms, and metadata. It runs through its normal path with ajv and then with
   this package installed in ajv's place, requiring identical text.
+- `test/fixtures/jtd-parser-project` contains the unchanged project that
+  imports `ajv/dist/jtd` and reads JSON text with `compileParser`, covering
+  empty and metadata schemas, every type and integer range, enumerations,
+  nullable forms, arrays, records with optional and additional members,
+  dictionaries, discriminators, recursive references, and dictionaries of
+  records. Its inputs include valid documents, well-formed documents the schema
+  rejects, and text that is not well-formed JSON; for each it prints the parsed
+  value or the parser's reason and position, then validates and serializes the
+  parsed value. The project also attempts schemas ajv refuses to compile for
+  parsing and prints each refusal reason. It runs through its normal path with
+  ajv and then with this package installed in ajv's place, requiring identical
+  output.
 - `test/drop-in.test.js` copies the existing project fixture, runs its normal
   validation path with ajv, repoints `node_modules/ajv` at this package without
   editing the project's code, schemas, or configuration, runs the same path, and
@@ -647,7 +705,7 @@ npm run verify  # prints the verdict comparison
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
 - `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,
-  its text generator, and its error reporting.
+  its text generator, its text parser, and its error reporting.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.

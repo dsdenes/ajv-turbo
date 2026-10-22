@@ -1,0 +1,4 @@
+{
+  "north": {"enabled": true, "limit": 10, "label": "north"},
+  "south": {"enabled": false, "limit": 0}
+}

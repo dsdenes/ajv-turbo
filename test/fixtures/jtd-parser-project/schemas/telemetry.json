@@ -1,0 +1,22 @@
+{
+  "definitions": {
+    "reading": {
+      "properties": {
+        "at": {"type": "timestamp"},
+        "value": {"type": "float64"}
+      },
+      "optionalProperties": {
+        "unit": {"enum": ["C", "F"]}
+      }
+    }
+  },
+  "properties": {
+    "id": {"type": "string"},
+    "level": {"type": "int32"}
+  },
+  "optionalProperties": {
+    "tags": {"values": {"type": "string"}},
+    "readings": {"elements": {"ref": "reading"}},
+    "note": {"type": "string", "nullable": true}
+  }
+}

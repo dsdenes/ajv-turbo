@@ -1,0 +1,1 @@
+{"id": "sensor-1", "level": 01}

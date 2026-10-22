@@ -1,0 +1,19 @@
+{
+  "discriminator": "kind",
+  "mapping": {
+    "started": {
+      "properties": {
+        "at": {"type": "timestamp"}
+      },
+      "optionalProperties": {
+        "by": {"type": "string"}
+      }
+    },
+    "stopped": {
+      "properties": {
+        "at": {"type": "timestamp"},
+        "reason": {"type": "string"}
+      }
+    }
+  }
+}

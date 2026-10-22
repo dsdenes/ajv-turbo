@@ -13,6 +13,8 @@ const SOURCE_PROJECT = path.join(__dirname, "fixtures", "jtd-project");
 const WORK_PROJECT = path.join(ROOT, ".tmp", "jtd-project");
 const SERIALIZER_PROJECT = path.join(__dirname, "fixtures", "jtd-serializer-project");
 const SERIALIZER_WORK_PROJECT = path.join(ROOT, ".tmp", "jtd-serializer-project");
+const PARSER_PROJECT = path.join(__dirname, "fixtures", "jtd-parser-project");
+const PARSER_WORK_PROJECT = path.join(ROOT, ".tmp", "jtd-parser-project");
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
@@ -674,4 +676,305 @@ test("a JSON Type Definition serializer project runs unchanged with the replacem
     assert.strictEqual(typeof row.text, "string", `${row.case} should produce text`);
     assert.doesNotThrow(() => JSON.parse(row.text), `${row.case} should produce a JSON document`);
   }
+});
+
+// --- JSON Type Definition text parsing -------------------------------------
+
+// Input text for the parser: every document above written as JSON, plus the
+// forms where ajv's parser diverges from JSON.parse (integer digit limits,
+// trailing commas, escapes, leading zeroes) and text that is not JSON at all.
+const PARSER_TEXTS = [
+  ...DOCUMENTS.filter((document) => document !== undefined).map((document) => JSON.stringify(document)),
+  "",
+  " ",
+  "\n",
+  " [1] ",
+  "1 2",
+  "{}x",
+  " \n\t\r{}",
+  "true ",
+  " true ",
+  "tru",
+  "truex",
+  "falsex",
+  "nullx",
+  "01",
+  "+1",
+  ".5",
+  "1.",
+  "1e",
+  "1e+",
+  "1e400",
+  "-1e400",
+  "1234",
+  "4294967295",
+  "4294967296",
+  "65535",
+  "65536",
+  "2147483647",
+  "2147483648",
+  "3000000000",
+  '"',
+  '"a',
+  '"a\\',
+  '"\\q"',
+  '"\\u12"',
+  '"\\u00zz"',
+  '"\\u00E9"',
+  '"\\u0000"',
+  '"\u0001"',
+  '"a" "b"',
+  "[]",
+  "[ ]",
+  "[1]",
+  '["a"]',
+  '["a","b"]',
+  '["a",]',
+  '["a" "b"]',
+  "[1,]",
+  "[",
+  '["a"',
+  '"a"]',
+  "{}",
+  "{ }",
+  '{"x":"a"}',
+  '{"x":1}',
+  '{"x":"a",}',
+  '{"x":"a" "y":1}',
+  '{"x":"a","z":1}',
+  '{"t":"a","x":"s"}',
+  '{"t":"b"}',
+  '{"t":"c"}',
+  '{"t":1}',
+  '{"x":"s","t":"a"}',
+  '{"k":"v"}',
+  '{"k":1}',
+  '{"k":"v","j":"w"}',
+  '{"k":"v",}',
+  '{"k":"v" "j":"w"}',
+  '"2020-01-01T00:00:00Z"',
+  '"2020-01-01"',
+  '"2020-02-30T00:00:00Z"',
+  '"2020-01-01T24:00:00Z"',
+  '"2020-01-01T23:59:60Z"',
+  '"2020-01-01"',
+  '{"id":"x"}',
+  '{"id":"x","children":[]}',
+  '{"id":"x","children":[{"id":"y"}]}',
+  '{"id":"x","children":[{"id":"y"},]}',
+  '{"id":1}',
+  '{"id":"x","children":[{"id":"y"}],"extra":1}',
+  '{"kind":"leaf","value":1}',
+  '{"kind":"branch","left":{"kind":"leaf","value":1},"right":{"kind":"leaf","value":"x"}}',
+  '{"kind":"leaf"}',
+  '{"kind":"nope"}',
+  '{"value":1}',
+  '{"kind":"leaf","value":1,"x":2}',
+  '{"name":"a","stamps":[{"at":"2020-01-01T00:00:00Z"}],"labels":{"k":"v"}}',
+  '{"name":1,"stamps":[{"at":"nope","zone":"nowhere"}],"labels":{"k":1},"note":2}',
+  '{"meta":"anything"}',
+  '{"x":"a"} ',
+  "[1] [2]",
+];
+
+function parserOutcome(parse, text) {
+  try {
+    const value = parse(text);
+    return {
+      failed: value === undefined,
+      value: value === undefined ? null : value,
+      message: parse.message,
+      position: parse.position,
+      promise: value instanceof Promise,
+    };
+  } catch (error) {
+    return {thrown: `${error.constructor.name}: ${error.message}`};
+  }
+}
+
+test("JSON Type Definition parsing matches ajv for every form and input", () => {
+  for (const options of [{}, {allowDate: true}, {parseDate: true}, {int32range: false}]) {
+    const oracle = new AjvReference(clone(options));
+    const replacement = new AjvReplacement(clone(options));
+    let compared = 0;
+    for (const testCase of CASES) {
+      const parseOracle = oracle.compileParser(clone(testCase.schema));
+      const parseReplacement = replacement.compileParser(clone(testCase.schema));
+      for (const text of PARSER_TEXTS) {
+        compared++;
+        const context = JSON.stringify({options, testCase: testCase.name, text});
+        assert.deepStrictEqual(
+          parserOutcome(parseReplacement, text),
+          parserOutcome(parseOracle, text),
+          context,
+        );
+      }
+    }
+    assert.strictEqual(compared, CASES.length * PARSER_TEXTS.length);
+  }
+});
+
+test("JSON Type Definition parsing reports failures and offsets synchronously", () => {
+  const ajv = new AjvReplacement();
+  const parseObject = ajv.compileParser({properties: {x: {type: "string"}}});
+  assert.deepStrictEqual(parseObject('{"x":"a"}'), {x: "a"});
+  assert.strictEqual(parseObject.position, undefined);
+  assert.strictEqual(parseObject.message, undefined);
+
+  assert.strictEqual(parseObject('{"x":1}'), undefined);
+  assert.strictEqual(parseObject.message, "unexpected token 1");
+  assert.strictEqual(parseObject.position, 5);
+
+  assert.strictEqual(parseObject('{"x":"a"'), undefined);
+  assert.strictEqual(parseObject.message, "unexpected token undefined");
+  assert.strictEqual(parseObject.position, 8);
+
+  // The message and position of the previous call do not outlive it.
+  assert.deepStrictEqual(parseObject('{"x":"b"}'), {x: "b"});
+  assert.strictEqual(parseObject.message, undefined);
+  assert.strictEqual(parseObject.position, undefined);
+
+  const parseInteger = ajv.compileParser({type: "int8"});
+  assert.strictEqual(parseInteger("128"), undefined);
+  assert.strictEqual(parseInteger.message, "integer out of range");
+  assert.strictEqual(parseInteger.position, 3);
+
+  const parseEnum = ajv.compileParser({enum: ["a", "b"]});
+  assert.strictEqual(parseEnum('"c"'), undefined);
+  assert.strictEqual(parseEnum.message, "unexpected token c");
+  assert.strictEqual(parseEnum.position, 1);
+
+  const outcomes = [parseObject('{"x":"a"}'), parseObject("{")];
+  for (const value of outcomes) assert.strictEqual(value instanceof Promise, false);
+});
+
+const PARSER_MALFORMED = [
+  ...MALFORMED,
+  // ajv's parser has its own compile-time failures on top of the schema rules.
+  {name: "empty properties object", schema: {properties: {}}},
+  {
+    name: "empty properties object in a mapping",
+    schema: {discriminator: "t", mapping: {a: {properties: {}}}},
+  },
+  {name: "missing definition", schema: {ref: "missing"}},
+  {
+    name: "missing definition behind a reference",
+    schema: {definitions: {a: {ref: "missing"}}, ref: "a"},
+  },
+  {name: "mapping member null", schema: {discriminator: "t", mapping: {a: null}}},
+  {name: "mapping member number", schema: {discriminator: "t", mapping: {a: 5}}},
+  {name: "type is not a known type", schema: {type: "nope"}},
+  {name: "elements not a schema", schema: {elements: "x"}},
+  {name: "properties not a schema", schema: {properties: "x"}},
+  {name: "properties array", schema: {properties: ["x"]}},
+];
+
+test("the parser rejects schemas where and as ajv rejects them", () => {
+  for (const {name, schema} of PARSER_MALFORMED) {
+    for (const validateSchema of [true, false]) {
+      const oracle = new AjvReference({validateSchema});
+      const replacement = new AjvReplacement({validateSchema});
+      const expected = capture(() => {
+        const parse = oracle.compileParser(clone(schema));
+        return {parsed: parse('"a"'), message: parse.message, position: parse.position};
+      });
+      const actual = capture(() => {
+        const parse = replacement.compileParser(clone(schema));
+        return {parsed: parse('"a"'), message: parse.message, position: parse.position};
+      });
+      assert.deepStrictEqual(actual, expected, `${name} (validateSchema: ${validateSchema})`);
+    }
+  }
+});
+
+test("parser compilation keeps ajv's caching and registry behaviour", () => {
+  const oracle = new AjvReference({validateSchema: false});
+  const replacement = new AjvReplacement({validateSchema: false});
+  const schema = {type: "string"};
+  const oracleParse = oracle.compileParser(schema);
+  const replacementParse = replacement.compileParser(schema);
+  assert.strictEqual(replacement.compileParser(schema), replacementParse);
+  assert.strictEqual(replacementParse('"a"'), oracleParse('"a"'));
+  assert.deepStrictEqual(
+    parserOutcome(replacementParse, "1"),
+    parserOutcome(oracleParse, "1"),
+  );
+
+  // The parser and serializer share ajv's schema environment: an identified
+  // schema can produce both, and the registered schema still validates.
+  const oracleSchema = {$id: "https://example.com/parser", type: "string"};
+  const replacementSchema = {$id: "https://example.com/parser", type: "string"};
+  oracle.compileSerializer(oracleSchema);
+  replacement.compileSerializer(replacementSchema);
+  const oracleIdentifiedParse = oracle.compileParser(oracleSchema);
+  const replacementIdentifiedParse = replacement.compileParser(replacementSchema);
+  assert.strictEqual(replacementIdentifiedParse('"a"'), oracleIdentifiedParse('"a"'));
+  assert.deepStrictEqual(
+    capture(() => oracle.getSchema("https://example.com/parser")),
+    capture(() => replacement.getSchema("https://example.com/parser")),
+  );
+  let oracleDuplicate = null;
+  let replacementDuplicate = null;
+  try {
+    oracle.compileParser({$id: "https://example.com/parser", type: "string"});
+  } catch (error) {
+    oracleDuplicate = error.message;
+  }
+  try {
+    replacement.compileParser({$id: "https://example.com/parser", type: "string"});
+  } catch (error) {
+    replacementDuplicate = error.message;
+  }
+  assert.strictEqual(replacementDuplicate, oracleDuplicate);
+
+  // A schema whose compilation failed is not validated again on the next
+  // attempt, exactly as ajv's schema cache behaves.
+  const broken = {type: "nope"};
+  const expectedFirst = capture(() => oracle.compileParser(broken));
+  const actualFirst = capture(() => replacement.compileParser(broken));
+  assert.deepStrictEqual(actualFirst, expectedFirst);
+  const expectedSecond = capture(() => oracle.compileParser(broken));
+  const actualSecond = capture(() => replacement.compileParser(broken));
+  assert.deepStrictEqual(actualSecond, expectedSecond);
+});
+
+test("a JSON Type Definition parser project runs unchanged with the replacement", () => {
+  const before = hashDirectory(PARSER_PROJECT);
+  const {reference, replacement} = runWithBothValidators(PARSER_PROJECT, PARSER_WORK_PROJECT);
+
+  assert.deepStrictEqual(replacement, reference);
+  assert.strictEqual(hashDirectory(PARSER_PROJECT), before, "fixture project was edited");
+  assert.ok(reference.length > 0, "expected the fixture to parse documents");
+
+  const rejected = reference.filter((row) => row.rejected !== undefined);
+  const dataRows = reference.filter((row) => row.rejected === undefined);
+  assert.ok(rejected.length > 0, "expected refused schemas");
+  for (const row of rejected) {
+    assert.strictEqual(row.rejected, true, `${row.case} should be refused`);
+    assert.match(row.error, /^(?:[A-Za-z]*Error): /, `${row.case} should report a reason`);
+  }
+
+  const failed = dataRows.filter((row) => row.failed);
+  const parsed = dataRows.filter((row) => !row.failed);
+  assert.ok(failed.length > 0, "expected failed parses");
+  assert.ok(parsed.length > 0, "expected successful parses");
+  for (const row of failed) {
+    assert.strictEqual(typeof row.message, "string", `${row.case} should report a reason`);
+    assert.strictEqual(typeof row.position, "number", `${row.case} should report a position`);
+    assert.strictEqual(row.promise, false, `${row.case} should fail synchronously`);
+  }
+  for (const row of parsed) {
+    assert.strictEqual(row.promise, false, `${row.case} should parse synchronously`);
+    assert.strictEqual(typeof row.parsed, "string", `${row.case} should report a parsed value`);
+    assert.strictEqual(typeof row.valid, "boolean", `${row.case} should validate the parsed value`);
+    if (row.valid) {
+      assert.strictEqual(typeof row.text, "string", `${row.case} should serialize`);
+      assert.strictEqual(row.roundTrip, row.parsed, `${row.case} should read back unchanged`);
+    } else assert.ok(Array.isArray(row.errors) && row.errors.length > 0, row.case);
+  }
+  assert.ok(failed.some((row) => row.case.endsWith(".malformed")), "expected malformed input");
+  assert.ok(
+    reference.some((row) => row.failed && row.case === "telemetry.invalid"),
+    "expected schema-invalid input to fail parsing",
+  );
 });

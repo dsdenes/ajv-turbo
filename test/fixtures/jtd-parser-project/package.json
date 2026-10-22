@@ -1,0 +1,13 @@
+{
+  "name": "telemetry-parser-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing service that reads JSON documents through ajv's JSON Type Definition parser",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

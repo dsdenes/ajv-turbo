@@ -1,0 +1,12 @@
+{
+  "values": {
+    "properties": {
+      "enabled": {"type": "boolean"},
+      "limit": {"type": "uint16"}
+    },
+    "optionalProperties": {
+      "label": {"type": "string"}
+    },
+    "additionalProperties": true
+  }
+}

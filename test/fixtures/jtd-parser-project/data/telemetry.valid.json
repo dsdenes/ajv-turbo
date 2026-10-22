@@ -1,0 +1,10 @@
+{
+  "id": "sensor-1",
+  "level": 3,
+  "tags": {"site": "north", "unit": "C"},
+  "readings": [
+    {"at": "2020-01-02T03:04:05Z", "value": 21.5},
+    {"at": "2020-01-02T03:04:06Z", "value": 21.75, "unit": "C"}
+  ],
+  "note": null
+}
