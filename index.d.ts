@@ -198,6 +198,7 @@ export interface Options {
   formats?: Record<string, Format>;
   keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
   $data?: boolean;
+  discriminator?: boolean;
   [key: string]: unknown;
 }
 
