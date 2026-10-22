@@ -258,6 +258,46 @@ a string definition leaves non-strings untouched. `validateFormats: false`
 disables every format rule, including the check for formats the project never
 registered.
 
+### ajv's formats plugin
+
+A project can load ajv's official `ajv-formats` plugin without changing it:
+
+```js
+const Ajv = require("ajv");
+const addFormats = require("ajv-formats");
+const ajv = new Ajv();
+addFormats(ajv);                       // default formats and range keywords
+addFormats(ajv, {mode: "fast"});       // the plugin's fast definitions
+const validate = ajv.compile({type: "string", format: "email"});
+```
+
+The plugin registers its format definitions through `addFormat`, so the
+`format` keyword judges every format it defines — `date`, `time`, `date-time`,
+`iso-time`, `iso-date-time`, `duration`, `uri`, `uri-reference`,
+`uri-template`, `url`, `email`, `hostname`,
+`ipv4`, `ipv6`, `regex`, `uuid`, the JSON-pointer formats, `byte`, `int32`,
+`int64`, `float`, `double`, `password`, and `binary` — with the same verdict,
+error entry, and `errorsText` summary as ajv, through the draft-07, 2019-09, and
+2020-12 entry points. The fast mode produces ajv's fast-mode verdicts for the
+same schemas and documents.
+
+With its default options the plugin also registers `formatMinimum`,
+`formatMaximum`, `formatExclusiveMinimum`, and `formatExclusiveMaximum`. Those
+compare the value against a literal or, with `$data`, against a location in the
+document, including a format name read from another field; they report ajv's
+error entry, params, message, and position, and accept the boundary the same
+way. The values the comparison can use are the plugin's `compare` functions, so
+it refuses a format without one at compile time with ajv's message. A range
+keyword also enforces the plugin's `dependencies` declaration: a schema that
+uses one without a `format` keyword is refused with ajv's message.
+
+`addFormats.get(name, mode)` and its `Unknown format "<name>"` refusal work
+unchanged. The plugin's own imports of `ajv` and `ajv/dist/compile/codegen`
+resolve against this package: the public `KeywordCxt` and the code helpers
+(`_`, `str`, `stringify`, `nil`, `Name`, `operators`, `or`, `getProperty`) are
+exported where the plugin expects them. The package itself does not depend on
+the plugin; a project that never loads it behaves as before.
+
 ## Data references
 
 With ajv's `$data` option enabled, a keyword value may name a location in the
@@ -881,6 +921,16 @@ npm run verify  # prints the verdict comparison
   both validators and requires identical verdicts, error reports, and summaries
   across data types and schema positions, in both reporting modes, with
   `validateFormats: false`, and for a strict-mode project.
+- `test/formats-plugin.test.js` runs an unchanged project that loads ajv's
+  official formats plugin and prints the verdict, report, and summary for every
+  format the plugin defines — through the draft-07, 2019-09, and 2020-12 entry
+  points, in both the default and fast modes, under first-error and complete
+  reporting — for each range keyword's inside, outside, and boundary values,
+  for a comparison value read from a sibling field, for the plugin's lookup and
+  its unknown-format refusal, and for projects that never load the plugin. It
+  runs the project first with ajv and then with this package in ajv's place
+  without editing it, and requires every printed line to match.
+- `test/fixtures/formats-plugin-project` contains that unchanged project.
 - `test/keywords.test.js` registers custom keywords in both validators — untyped
   and typed, in every schema position, in composite rules, in referenced and
   registered schemas, with `errors: true`, `modifying`, and `schema: false` — and
@@ -1058,6 +1108,8 @@ npm run verify  # prints the verdict comparison
   `discriminator` option.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.
+- `lib/keyword-code.js` – ajv's code-keyword compile surface, including the
+  `KeywordCxt` extension code builds against.
 - `lib/uri.js`, `lib/util.js` – URI, pointer, and comparison helpers.
 - `lib/refs/json-schema-draft-07.json` – draft-07 meta-schema used for meta refs.
 - `lib/refs/json-schema-2019-09/` – the 2019-09 meta-schema and vocabulary

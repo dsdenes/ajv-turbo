@@ -1,11 +1,11 @@
 # ajv benchmark suite: replacement versus ajv
 
-Measured 2026-10-22T05:18:30.671Z on Node.js 24.18.0.
+Measured 2026-10-22T18:25:07.732Z on Node.js 24.18.0.
 
 ## Environment
 
 - Node.js: 24.18.0 (V8 13.6.233.17-node.50)
-- Replacement: ajv 8.20.0 at commit 4b1e04b4b779541cc6b6dc6944d489c80d3f21de
+- Replacement: ajv 8.20.0 at commit 2e6bc37f158597f99bed1eca365cc47d68ad93c8
 - Benchmark suite: json-schema-benchmark at commit e9c884f9edd38438a150fef0e9a2a1173c0fcc50 (https://github.com/ebdrup/json-schema-benchmark)
 - Cases: JSON-Schema-Test-Suite tests/draft7 and remotes at commit bcf1dc81ae099ade2a9642c672c06ee1af1bb489 (https://github.com/json-schema/JSON-Schema-Test-Suite)
 - Machine: AMD Ryzen 9 5950X 16-Core Processor, 32 cores, x64, linux 7.0.0-38-generic, 94 GiB
@@ -17,206 +17,206 @@ Measured 2026-10-22T05:18:30.671Z on Node.js 24.18.0.
 - Documents verified: 695
 - Verdict mismatches: 0
 - Cases excluded (schema failed to compile): 52
-- Aggregate: geometric mean of per-case throughput ratios (replacement / ajv) = **2.0257**
-- Whole-suite throughput: ajv 15,794,758 documents/sec, replacement 32,184,193 documents/sec, ratio 2.038
+- Aggregate: geometric mean of per-case throughput ratios (replacement / ajv) = **2.0439**
+- Whole-suite throughput: ajv 18,494,274 documents/sec, replacement 38,430,620 documents/sec, ratio 2.078
 
 ## Per case
 
 | Case | Documents | ajv (docs/sec) | Replacement (docs/sec) | Ratio |
 |---|--:|--:|--:|--:|
-| tests/draft7/additionalItems.json :: additionalItems as schema | 2 | 57,683,599 | 113,855,255 | 1.974 |
-| tests/draft7/additionalItems.json :: array of items with no additionalItems | 5 | 190,850,355 | 300,796,577 | 1.576 |
-| tests/draft7/additionalItems.json :: additionalItems are allowed by default | 1 | 101,234,778 | 103,505,399 | 1.022 |
-| tests/draft7/additionalItems.json :: additionalItems should not look in applicators, invalid case | 1 | 35,451,644 | 76,368,976 | 2.154 |
-| tests/draft7/additionalProperties.json :: additionalProperties being false does not allow other properties | 6 | 79,146,065 | 98,303,216 | 1.242 |
-| tests/draft7/additionalProperties.json :: non-ASCII pattern with additionalProperties | 2 | 38,022,513 | 46,555,244 | 1.224 |
-| tests/draft7/additionalProperties.json :: additionalProperties allows a schema which should validate | 3 | 23,568,370 | 100,247,309 | 4.253 |
-| tests/draft7/additionalProperties.json :: additionalProperties can exist by itself | 2 | 17,489,749 | 91,294,660 | 5.220 |
-| tests/draft7/additionalProperties.json :: additionalProperties are allowed by default | 1 | 122,149,636 | 129,901,473 | 1.063 |
-| tests/draft7/additionalProperties.json :: additionalProperties should not look in applicators | 1 | 9,573,961 | 71,142,358 | 7.431 |
-| tests/draft7/allOf.json :: allOf | 4 | 67,798,501 | 152,612,943 | 2.251 |
-| tests/draft7/allOf.json :: allOf with base schema | 5 | 37,389,262 | 93,312,051 | 2.496 |
-| tests/draft7/allOf.json :: allOf simple types | 2 | 87,859,041 | 165,465,567 | 1.883 |
-| tests/draft7/allOf.json :: allOf with boolean schemas, all true | 1 | 136,639,052 | 130,375,638 | 0.954 |
-| tests/draft7/allOf.json :: allOf with boolean schemas, some false | 1 | 54,858,050 | 126,041,924 | 2.298 |
-| tests/draft7/allOf.json :: allOf with boolean schemas, all false | 1 | 55,113,559 | 122,395,586 | 2.221 |
-| tests/draft7/allOf.json :: allOf with one empty schema | 1 | 136,132,190 | 133,731,268 | 0.982 |
-| tests/draft7/allOf.json :: allOf with two empty schemas | 1 | 134,653,432 | 130,692,951 | 0.971 |
-| tests/draft7/allOf.json :: allOf with the first empty schema | 2 | 101,789,113 | 211,245,609 | 2.075 |
-| tests/draft7/allOf.json :: allOf with the last empty schema | 2 | 102,963,052 | 200,638,305 | 1.949 |
-| tests/draft7/allOf.json :: nested allOf, to check validation semantics | 2 | 106,084,652 | 212,984,232 | 2.008 |
-| tests/draft7/allOf.json :: allOf combined with anyOf, oneOf | 8 | 13,387,675 | 21,813,762 | 1.629 |
-| tests/draft7/anyOf.json :: anyOf | 4 | 48,333,766 | 107,503,643 | 2.224 |
-| tests/draft7/anyOf.json :: anyOf with base schema | 3 | 32,823,012 | 70,789,693 | 2.157 |
-| tests/draft7/anyOf.json :: anyOf with boolean schemas, all true | 1 | 134,563,362 | 129,201,531 | 0.960 |
-| tests/draft7/anyOf.json :: anyOf with boolean schemas, some true | 1 | 136,702,558 | 134,632,633 | 0.985 |
-| tests/draft7/anyOf.json :: anyOf with boolean schemas, all false | 1 | 18,643,354 | 115,533,060 | 6.197 |
-| tests/draft7/anyOf.json :: anyOf complex types | 4 | 40,827,065 | 165,768,398 | 4.060 |
-| tests/draft7/anyOf.json :: anyOf with one empty schema | 2 | 253,446,945 | 233,147,046 | 0.920 |
-| tests/draft7/anyOf.json :: nested anyOf, to check validation semantics | 2 | 37,513,010 | 222,045,278 | 5.919 |
-| tests/draft7/anyOf.json :: nested anyOf, to check validation semantics | 2 | 38,900,449 | 217,222,006 | 5.584 |
-| tests/draft7/boolean_schema.json :: boolean schema 'true' | 9 | 695,332,186 | 734,921,888 | 1.057 |
-| tests/draft7/boolean_schema.json :: boolean schema 'false' | 9 | 57,514,685 | 424,459,838 | 7.380 |
-| tests/draft7/const.json :: const validation | 3 | 78,390,506 | 177,848,424 | 2.269 |
-| tests/draft7/const.json :: const with object | 4 | 15,441,934 | 20,527,007 | 1.329 |
-| tests/draft7/const.json :: const with array | 3 | 17,887,378 | 27,345,867 | 1.529 |
-| tests/draft7/const.json :: const with null | 2 | 89,151,751 | 203,520,980 | 2.283 |
-| tests/draft7/const.json :: const with false does not match 0 | 3 | 82,731,389 | 263,442,170 | 3.184 |
-| tests/draft7/const.json :: const with true does not match 1 | 3 | 81,827,191 | 267,939,496 | 3.274 |
-| tests/draft7/const.json :: const with [false] does not match [0] | 3 | 32,083,166 | 48,386,339 | 1.508 |
-| tests/draft7/const.json :: const with [true] does not match [1] | 3 | 31,181,743 | 46,258,754 | 1.484 |
-| tests/draft7/const.json :: const with {"a": false} does not match {"a": 0} | 3 | 13,611,032 | 18,421,908 | 1.353 |
-| tests/draft7/const.json :: const with {"a": true} does not match {"a": 1} | 3 | 13,519,613 | 19,118,635 | 1.414 |
-| tests/draft7/const.json :: const with 0 does not match other zero-like types | 6 | 84,307,966 | 214,767,063 | 2.547 |
-| tests/draft7/const.json :: const with 1 does not match true | 3 | 117,858,123 | 171,065,904 | 1.451 |
-| tests/draft7/const.json :: const with -2.0 matches integer and float types | 5 | 93,601,988 | 306,015,255 | 3.269 |
-| tests/draft7/const.json :: float and integers are equal up to 64-bit representation limits | 4 | 105,185,602 | 268,792,727 | 2.555 |
-| tests/draft7/const.json :: nul characters in strings | 2 | 80,029,662 | 133,014,487 | 1.662 |
-| tests/draft7/contains.json :: contains keyword validation | 6 | 24,100,449 | 221,079,926 | 9.173 |
-| tests/draft7/contains.json :: contains keyword with const keyword | 3 | 16,401,108 | 188,572,414 | 11.498 |
-| tests/draft7/contains.json :: contains keyword with boolean schema true | 2 | 91,962,744 | 171,726,295 | 1.867 |
-| tests/draft7/contains.json :: contains keyword with boolean schema false | 3 | 57,057,884 | 197,001,975 | 3.453 |
-| tests/draft7/contains.json :: items + contains | 4 | 11,087,107 | 15,381,328 | 1.387 |
-| tests/draft7/default.json :: invalid type for default | 2 | 128,144,427 | 161,459,205 | 1.260 |
-| tests/draft7/default.json :: invalid string value for default | 2 | 90,529,985 | 104,394,587 | 1.153 |
-| tests/draft7/definitions.json :: valid definition | 1 | 1,661,902 | 38,533,452 | 23.186 |
-| tests/draft7/definitions.json :: invalid definition | 1 | 1,696,602 | 29,205,834 | 17.214 |
-| tests/draft7/dependencies.json :: dependencies | 7 | 159,353,894 | 301,704,332 | 1.893 |
-| tests/draft7/dependencies.json :: dependencies with empty array | 3 | 357,255,849 | 359,387,189 | 1.006 |
-| tests/draft7/dependencies.json :: multiple dependencies | 6 | 66,712,582 | 126,393,434 | 1.895 |
-| tests/draft7/dependencies.json :: multiple dependencies subschema | 5 | 76,984,693 | 195,158,426 | 2.535 |
-| tests/draft7/dependencies.json :: dependencies with boolean subschemas | 4 | 85,048,066 | 221,337,493 | 2.602 |
-| tests/draft7/dependencies.json :: dependencies with escaped characters | 7 | 31,326,899 | 56,233,722 | 1.795 |
-| tests/draft7/enum.json :: simple enum validation | 2 | 103,181,336 | 220,158,420 | 2.134 |
-| tests/draft7/enum.json :: heterogeneous enum validation | 5 | 16,115,150 | 28,617,328 | 1.776 |
-| tests/draft7/enum.json :: heterogeneous enum-with-null validation | 3 | 124,058,755 | 195,661,243 | 1.577 |
-| tests/draft7/enum.json :: enums in properties | 6 | 75,724,942 | 189,206,706 | 2.499 |
-| tests/draft7/enum.json :: enum with escaped characters | 3 | 136,221,671 | 271,956,458 | 1.996 |
-| tests/draft7/enum.json :: enum with false does not match 0 | 3 | 94,585,932 | 309,653,722 | 3.274 |
-| tests/draft7/enum.json :: enum with true does not match 1 | 3 | 95,041,992 | 310,866,679 | 3.271 |
-| tests/draft7/enum.json :: enum with 0 does not match false | 3 | 128,719,575 | 210,575,741 | 1.636 |
-| tests/draft7/enum.json :: enum with 1 does not match true | 3 | 128,101,232 | 197,442,815 | 1.541 |
-| tests/draft7/enum.json :: nul characters in strings | 2 | 88,902,751 | 136,695,777 | 1.538 |
-| tests/draft7/exclusiveMaximum.json :: exclusiveMaximum validation | 4 | 104,079,654 | 272,844,033 | 2.621 |
-| tests/draft7/exclusiveMinimum.json :: exclusiveMinimum validation | 4 | 105,219,019 | 252,939,977 | 2.404 |
-| tests/draft7/if-then-else.json :: if and then without else | 3 | 87,162,449 | 203,821,576 | 2.338 |
-| tests/draft7/if-then-else.json :: if and else without then | 3 | 67,363,263 | 141,795,447 | 2.105 |
-| tests/draft7/if-then-else.json :: validate against correct branch, then vs else | 4 | 48,368,415 | 151,811,274 | 3.139 |
-| tests/draft7/if-then-else.json :: if with boolean schema true | 2 | 102,867,825 | 213,626,900 | 2.077 |
-| tests/draft7/if-then-else.json :: if with boolean schema false | 2 | 101,921,042 | 208,833,075 | 2.049 |
-| tests/draft7/if-then-else.json :: if appears at the end when serialized (keyword processing sequence) | 4 | 55,782,601 | 90,044,978 | 1.614 |
-| tests/draft7/infinite-loop-detection.json :: evaluating the same schema location against the same data location twice is not a sign of an infinite loop | 2 | 66,054,586 | 95,148,087 | 1.440 |
-| tests/draft7/items.json :: a schema given for items | 4 | 110,115,044 | 198,160,254 | 1.800 |
-| tests/draft7/items.json :: an array of schemas for items | 6 | 177,102,939 | 242,127,219 | 1.367 |
-| tests/draft7/items.json :: items with boolean schema (true) | 2 | 256,280,311 | 262,589,092 | 1.025 |
-| tests/draft7/items.json :: items with boolean schema (false) | 2 | 75,032,818 | 175,376,080 | 2.337 |
-| tests/draft7/items.json :: items with boolean schemas | 3 | 125,123,154 | 228,644,253 | 1.827 |
-| tests/draft7/items.json :: items and subitems | 6 | 30,450,823 | 64,142,676 | 2.106 |
-| tests/draft7/items.json :: nested items | 3 | 15,678,986 | 52,866,464 | 3.372 |
-| tests/draft7/maximum.json :: maximum validation | 4 | 149,736,971 | 259,582,316 | 1.734 |
-| tests/draft7/maximum.json :: maximum validation with unsigned integer | 4 | 144,432,465 | 247,359,512 | 1.713 |
-| tests/draft7/maxItems.json :: maxItems validation | 4 | 162,819,530 | 279,750,494 | 1.718 |
-| tests/draft7/maxLength.json :: maxLength validation | 5 | 122,617,984 | 150,602,595 | 1.228 |
-| tests/draft7/maxProperties.json :: maxProperties validation | 6 | 96,229,485 | 143,002,072 | 1.486 |
-| tests/draft7/maxProperties.json :: maxProperties = 0 means the object is empty | 2 | 52,015,520 | 76,247,018 | 1.466 |
-| tests/draft7/minimum.json :: minimum validation | 4 | 132,583,026 | 228,322,976 | 1.722 |
-| tests/draft7/minimum.json :: minimum validation with signed integer | 7 | 139,580,608 | 285,335,520 | 2.044 |
-| tests/draft7/minItems.json :: minItems validation | 4 | 143,463,877 | 245,510,581 | 1.711 |
-| tests/draft7/minLength.json :: minLength validation | 5 | 88,436,712 | 145,292,342 | 1.643 |
-| tests/draft7/minProperties.json :: minProperties validation | 6 | 106,055,415 | 147,978,113 | 1.395 |
-| tests/draft7/multipleOf.json :: by int | 3 | 90,947,751 | 130,668,659 | 1.437 |
-| tests/draft7/multipleOf.json :: by number | 3 | 74,496,462 | 106,376,059 | 1.428 |
-| tests/draft7/multipleOf.json :: by small number | 2 | 57,108,338 | 91,757,035 | 1.607 |
-| tests/draft7/multipleOf.json :: invalid instance should not raise error when float division = inf | 1 | 10,855,102 | 12,089,292 | 1.114 |
-| tests/draft7/not.json :: not | 2 | 65,470,181 | 179,478,946 | 2.741 |
-| tests/draft7/not.json :: not multiple types | 3 | 60,477,518 | 220,430,011 | 3.645 |
-| tests/draft7/not.json :: not more complex schema | 3 | 72,708,355 | 226,149,733 | 3.110 |
-| tests/draft7/not.json :: forbidden property | 2 | 77,380,798 | 168,243,192 | 2.174 |
-| tests/draft7/not.json :: not with boolean schema true | 1 | 50,712,347 | 117,234,254 | 2.312 |
-| tests/draft7/not.json :: not with boolean schema false | 1 | 136,224,525 | 135,350,731 | 0.994 |
-| tests/draft7/oneOf.json :: oneOf | 4 | 29,715,676 | 100,802,925 | 3.392 |
-| tests/draft7/oneOf.json :: oneOf with base schema | 3 | 39,693,765 | 68,431,292 | 1.724 |
-| tests/draft7/oneOf.json :: oneOf with boolean schemas, all true | 1 | 44,845,107 | 117,407,219 | 2.618 |
-| tests/draft7/oneOf.json :: oneOf with boolean schemas, one true | 1 | 24,669,614 | 132,494,074 | 5.371 |
-| tests/draft7/oneOf.json :: oneOf with boolean schemas, more than one true | 1 | 44,515,998 | 118,337,140 | 2.658 |
-| tests/draft7/oneOf.json :: oneOf with boolean schemas, all false | 1 | 16,882,632 | 119,683,300 | 7.089 |
-| tests/draft7/oneOf.json :: oneOf complex types | 4 | 31,530,426 | 114,066,675 | 3.618 |
-| tests/draft7/oneOf.json :: oneOf with empty schema | 2 | 57,015,417 | 217,430,052 | 3.814 |
-| tests/draft7/oneOf.json :: oneOf with required | 4 | 26,498,334 | 127,332,438 | 4.805 |
-| tests/draft7/oneOf.json :: oneOf with missing optional property | 4 | 32,559,075 | 144,361,555 | 4.434 |
-| tests/draft7/oneOf.json :: nested oneOf, to check validation semantics | 2 | 41,291,520 | 215,998,570 | 5.231 |
-| tests/draft7/optional/bignum.json :: integer | 1 | 25,083,774 | 26,037,274 | 1.038 |
-| tests/draft7/optional/bignum.json :: number | 1 | 113,535,150 | 111,125,428 | 0.979 |
-| tests/draft7/optional/bignum.json :: integer | 1 | 25,012,481 | 26,494,825 | 1.059 |
-| tests/draft7/optional/bignum.json :: number | 1 | 114,972,146 | 120,928,075 | 1.052 |
-| tests/draft7/optional/bignum.json :: string | 1 | 57,421,648 | 118,170,062 | 2.058 |
-| tests/draft7/optional/bignum.json :: integer comparison | 1 | 110,396,678 | 103,971,723 | 0.942 |
-| tests/draft7/optional/bignum.json :: float comparison with high precision | 1 | 48,811,626 | 104,499,064 | 2.141 |
-| tests/draft7/optional/bignum.json :: integer comparison | 1 | 111,368,899 | 102,411,665 | 0.920 |
-| tests/draft7/optional/bignum.json :: float comparison with high precision on negative numbers | 1 | 49,117,462 | 100,861,829 | 2.053 |
-| tests/draft7/optional/content.json :: validation of string-encoded content based on media type | 3 | 355,519,147 | 377,663,421 | 1.062 |
-| tests/draft7/optional/content.json :: validation of binary string-encoding | 3 | 366,627,680 | 368,074,216 | 1.004 |
-| tests/draft7/optional/content.json :: validation of binary-encoded media type documents | 4 | 482,084,345 | 479,412,450 | 0.994 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex $ does not match trailing newline | 2 | 45,141,315 | 55,457,168 | 1.229 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex converts \t to horizontal tab | 2 | 47,092,717 | 55,194,268 | 1.172 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex escapes control codes with \c and upper letter | 2 | 46,546,914 | 54,298,223 | 1.167 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex escapes control codes with \c and lower letter | 2 | 47,530,819 | 55,253,474 | 1.162 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \d matches ascii digits only | 3 | 46,278,399 | 60,054,495 | 1.298 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \D matches everything but ascii digits | 3 | 51,180,048 | 54,273,069 | 1.060 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \w matches ascii letters only | 2 | 48,088,201 | 56,748,688 | 1.180 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \W matches everything but ascii letters | 2 | 47,905,435 | 54,393,998 | 1.135 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \s matches whitespace | 11 | 56,904,551 | 59,751,513 | 1.050 |
-| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \S matches everything but whitespace | 11 | 46,136,316 | 65,976,907 | 1.430 |
-| tests/draft7/optional/float-overflow.json :: all integers are multiples of 0.5, if overflow is handled | 1 | 12,705,508 | 14,148,444 | 1.114 |
-| tests/draft7/optional/non-bmp-regex.json :: Proper UTF-16 surrogate pair handling: pattern | 7 | 49,504,593 | 61,453,981 | 1.241 |
-| tests/draft7/optional/non-bmp-regex.json :: Proper UTF-16 surrogate pair handling: patternProperties | 5 | 12,144,444 | 41,272,045 | 3.398 |
-| tests/draft7/pattern.json :: pattern validation | 8 | 138,594,400 | 147,847,924 | 1.067 |
-| tests/draft7/pattern.json :: pattern is not anchored | 1 | 41,140,783 | 39,809,403 | 0.968 |
-| tests/draft7/patternProperties.json :: patternProperties validates properties matching a regex | 7 | 19,170,574 | 50,406,782 | 2.629 |
-| tests/draft7/patternProperties.json :: multiple simultaneous patternProperties are validated | 6 | 10,038,761 | 22,578,699 | 2.249 |
-| tests/draft7/patternProperties.json :: regexes are not anchored by default and are case sensitive | 4 | 10,288,619 | 23,818,353 | 2.315 |
-| tests/draft7/patternProperties.json :: patternProperties with boolean schemas | 5 | 11,755,209 | 41,059,403 | 3.493 |
-| tests/draft7/properties.json :: object properties validation | 6 | 94,179,125 | 215,315,398 | 2.286 |
-| tests/draft7/properties.json :: properties with boolean schema | 4 | 77,295,045 | 187,515,396 | 2.426 |
-| tests/draft7/properties.json :: properties with escaped characters | 2 | 46,064,021 | 103,483,576 | 2.247 |
-| tests/draft7/propertyNames.json :: propertyNames validation | 6 | 60,943,500 | 95,671,085 | 1.570 |
-| tests/draft7/propertyNames.json :: propertyNames with boolean schema true | 2 | 222,617,797 | 222,077,423 | 0.998 |
-| tests/draft7/propertyNames.json :: propertyNames with boolean schema false | 2 | 36,197,104 | 96,047,164 | 2.653 |
-| tests/draft7/ref.json :: root pointer ref | 4 | 29,647,577 | 72,336,365 | 2.440 |
-| tests/draft7/ref.json :: relative pointer ref to object | 2 | 70,374,468 | 139,024,500 | 1.975 |
-| tests/draft7/ref.json :: relative pointer ref to array | 2 | 69,385,296 | 112,971,252 | 1.628 |
-| tests/draft7/ref.json :: escaped pointer ref | 6 | 72,178,780 | 158,503,819 | 2.196 |
-| tests/draft7/ref.json :: nested refs | 2 | 88,687,609 | 176,074,667 | 1.985 |
-| tests/draft7/ref.json :: ref overrides any sibling keywords | 3 | 65,198,975 | 145,567,044 | 2.233 |
-| tests/draft7/ref.json :: remote ref, containing refs itself | 2 | 4,623,892 | 64,786,078 | 14.011 |
-| tests/draft7/ref.json :: property named $ref that is not a reference | 2 | 73,632,404 | 144,282,310 | 1.959 |
-| tests/draft7/ref.json :: property named $ref, containing an actual $ref | 2 | 73,258,885 | 149,889,492 | 2.046 |
-| tests/draft7/ref.json :: $ref to boolean schema true | 1 | 115,640,282 | 120,033,496 | 1.038 |
-| tests/draft7/ref.json :: $ref to boolean schema false | 1 | 51,987,199 | 118,178,690 | 2.273 |
-| tests/draft7/ref.json :: refs with quote | 2 | 78,947,811 | 164,374,567 | 2.082 |
-| tests/draft7/ref.json :: naive replacement of $ref with its destination is not correct | 2 | 22,196,279 | 31,410,679 | 1.415 |
-| tests/draft7/refRemote.json :: remote ref | 2 | 98,738,447 | 198,227,626 | 2.008 |
-| tests/draft7/required.json :: required validation | 5 | 152,568,865 | 300,207,701 | 1.968 |
-| tests/draft7/required.json :: required default validation | 1 | 134,825,745 | 135,860,854 | 1.008 |
-| tests/draft7/required.json :: required with empty array | 1 | 135,061,554 | 134,436,616 | 0.995 |
-| tests/draft7/required.json :: required with escaped characters | 2 | 60,605,464 | 140,029,056 | 2.311 |
-| tests/draft7/type.json :: integer type matches integers | 9 | 75,530,567 | 195,645,941 | 2.590 |
-| tests/draft7/type.json :: number type matches numbers | 9 | 96,549,222 | 334,262,253 | 3.462 |
-| tests/draft7/type.json :: string type matches strings | 9 | 99,073,354 | 344,398,073 | 3.476 |
-| tests/draft7/type.json :: object type matches objects | 7 | 75,330,443 | 319,719,890 | 4.244 |
-| tests/draft7/type.json :: array type matches arrays | 7 | 74,663,648 | 322,924,257 | 4.325 |
-| tests/draft7/type.json :: boolean type matches booleans | 10 | 85,067,616 | 341,172,707 | 4.011 |
-| tests/draft7/type.json :: null type matches only the null object | 10 | 76,735,855 | 348,323,209 | 4.539 |
-| tests/draft7/type.json :: multiple types can be specified in an array | 7 | 80,518,024 | 217,091,185 | 2.696 |
-| tests/draft7/type.json :: type as array with one item | 2 | 105,115,491 | 222,367,755 | 2.115 |
-| tests/draft7/type.json :: type: array or object | 5 | 100,453,500 | 300,484,280 | 2.991 |
-| tests/draft7/type.json :: type: array, object or null | 5 | 141,002,679 | 306,976,449 | 2.177 |
-| tests/draft7/uniqueItems.json :: uniqueItems validation | 23 | 14,461,047 | 22,308,144 | 1.543 |
-| tests/draft7/uniqueItems.json :: uniqueItems with an array of items | 8 | 29,174,286 | 46,381,700 | 1.590 |
-| tests/draft7/uniqueItems.json :: uniqueItems with an array of items and additionalItems=false | 5 | 39,492,961 | 87,993,121 | 2.228 |
-| tests/draft7/uniqueItems.json :: uniqueItems=false validation | 15 | 1,092,053,623 | 713,040,378 | 0.653 |
-| tests/draft7/uniqueItems.json :: uniqueItems=false with an array of items | 8 | 259,566,775 | 273,409,349 | 1.053 |
-| tests/draft7/uniqueItems.json :: uniqueItems=false with an array of items and additionalItems=false | 5 | 160,840,099 | 232,217,387 | 1.444 |
+| tests/draft7/additionalItems.json :: additionalItems as schema | 2 | 64,283,020 | 122,071,793 | 1.899 |
+| tests/draft7/additionalItems.json :: array of items with no additionalItems | 5 | 217,286,564 | 338,527,886 | 1.558 |
+| tests/draft7/additionalItems.json :: additionalItems are allowed by default | 1 | 110,395,139 | 112,153,327 | 1.016 |
+| tests/draft7/additionalItems.json :: additionalItems should not look in applicators, invalid case | 1 | 40,019,303 | 86,599,776 | 2.164 |
+| tests/draft7/additionalProperties.json :: additionalProperties being false does not allow other properties | 6 | 92,351,129 | 112,149,866 | 1.214 |
+| tests/draft7/additionalProperties.json :: non-ASCII pattern with additionalProperties | 2 | 42,861,235 | 51,526,446 | 1.202 |
+| tests/draft7/additionalProperties.json :: additionalProperties allows a schema which should validate | 3 | 26,883,620 | 112,525,678 | 4.186 |
+| tests/draft7/additionalProperties.json :: additionalProperties can exist by itself | 2 | 19,807,035 | 108,147,834 | 5.460 |
+| tests/draft7/additionalProperties.json :: additionalProperties are allowed by default | 1 | 138,043,018 | 131,655,557 | 0.954 |
+| tests/draft7/additionalProperties.json :: additionalProperties should not look in applicators | 1 | 10,752,069 | 78,017,638 | 7.256 |
+| tests/draft7/allOf.json :: allOf | 4 | 71,353,523 | 171,669,101 | 2.406 |
+| tests/draft7/allOf.json :: allOf with base schema | 5 | 41,253,357 | 102,682,746 | 2.489 |
+| tests/draft7/allOf.json :: allOf simple types | 2 | 95,538,147 | 176,621,302 | 1.849 |
+| tests/draft7/allOf.json :: allOf with boolean schemas, all true | 1 | 137,168,419 | 141,056,366 | 1.028 |
+| tests/draft7/allOf.json :: allOf with boolean schemas, some false | 1 | 56,191,642 | 133,784,332 | 2.381 |
+| tests/draft7/allOf.json :: allOf with boolean schemas, all false | 1 | 58,061,611 | 127,956,986 | 2.204 |
+| tests/draft7/allOf.json :: allOf with one empty schema | 1 | 147,984,965 | 152,962,161 | 1.034 |
+| tests/draft7/allOf.json :: allOf with two empty schemas | 1 | 153,390,110 | 145,174,544 | 0.946 |
+| tests/draft7/allOf.json :: allOf with the first empty schema | 2 | 108,714,924 | 218,525,950 | 2.010 |
+| tests/draft7/allOf.json :: allOf with the last empty schema | 2 | 109,650,682 | 228,911,644 | 2.088 |
+| tests/draft7/allOf.json :: nested allOf, to check validation semantics | 2 | 114,742,700 | 247,215,398 | 2.155 |
+| tests/draft7/allOf.json :: allOf combined with anyOf, oneOf | 8 | 14,899,816 | 24,402,567 | 1.638 |
+| tests/draft7/anyOf.json :: anyOf | 4 | 50,642,228 | 115,879,908 | 2.288 |
+| tests/draft7/anyOf.json :: anyOf with base schema | 3 | 34,622,396 | 77,497,314 | 2.238 |
+| tests/draft7/anyOf.json :: anyOf with boolean schemas, all true | 1 | 149,925,300 | 144,311,099 | 0.963 |
+| tests/draft7/anyOf.json :: anyOf with boolean schemas, some true | 1 | 153,730,792 | 151,485,418 | 0.985 |
+| tests/draft7/anyOf.json :: anyOf with boolean schemas, all false | 1 | 21,434,393 | 133,141,015 | 6.212 |
+| tests/draft7/anyOf.json :: anyOf complex types | 4 | 45,771,835 | 188,620,996 | 4.121 |
+| tests/draft7/anyOf.json :: anyOf with one empty schema | 2 | 285,804,710 | 255,317,183 | 0.893 |
+| tests/draft7/anyOf.json :: nested anyOf, to check validation semantics | 2 | 42,326,996 | 247,913,811 | 5.857 |
+| tests/draft7/anyOf.json :: nested anyOf, to check validation semantics | 2 | 42,947,832 | 254,925,566 | 5.936 |
+| tests/draft7/boolean_schema.json :: boolean schema 'true' | 9 | 927,397,299 | 995,351,453 | 1.073 |
+| tests/draft7/boolean_schema.json :: boolean schema 'false' | 9 | 70,477,761 | 514,982,173 | 7.307 |
+| tests/draft7/const.json :: const validation | 3 | 98,254,809 | 230,290,840 | 2.344 |
+| tests/draft7/const.json :: const with object | 4 | 21,272,350 | 27,942,199 | 1.314 |
+| tests/draft7/const.json :: const with array | 3 | 24,147,642 | 37,025,022 | 1.533 |
+| tests/draft7/const.json :: const with null | 2 | 115,212,631 | 270,060,700 | 2.344 |
+| tests/draft7/const.json :: const with false does not match 0 | 3 | 102,356,219 | 342,625,288 | 3.347 |
+| tests/draft7/const.json :: const with true does not match 1 | 3 | 102,653,682 | 336,970,140 | 3.283 |
+| tests/draft7/const.json :: const with [false] does not match [0] | 3 | 42,450,471 | 61,733,478 | 1.454 |
+| tests/draft7/const.json :: const with [true] does not match [1] | 3 | 40,719,565 | 59,349,446 | 1.458 |
+| tests/draft7/const.json :: const with {"a": false} does not match {"a": 0} | 3 | 18,060,144 | 24,981,240 | 1.383 |
+| tests/draft7/const.json :: const with {"a": true} does not match {"a": 1} | 3 | 18,102,693 | 25,116,033 | 1.387 |
+| tests/draft7/const.json :: const with 0 does not match other zero-like types | 6 | 106,624,979 | 272,683,448 | 2.557 |
+| tests/draft7/const.json :: const with 1 does not match true | 3 | 145,798,708 | 224,740,295 | 1.541 |
+| tests/draft7/const.json :: const with -2.0 matches integer and float types | 5 | 118,058,041 | 364,826,537 | 3.090 |
+| tests/draft7/const.json :: float and integers are equal up to 64-bit representation limits | 4 | 124,528,934 | 349,789,555 | 2.809 |
+| tests/draft7/const.json :: nul characters in strings | 2 | 96,681,529 | 152,130,111 | 1.574 |
+| tests/draft7/contains.json :: contains keyword validation | 6 | 26,896,163 | 247,296,534 | 9.194 |
+| tests/draft7/contains.json :: contains keyword with const keyword | 3 | 18,561,770 | 206,912,274 | 11.147 |
+| tests/draft7/contains.json :: contains keyword with boolean schema true | 2 | 103,287,906 | 198,739,136 | 1.924 |
+| tests/draft7/contains.json :: contains keyword with boolean schema false | 3 | 62,411,599 | 220,062,401 | 3.526 |
+| tests/draft7/contains.json :: items + contains | 4 | 12,278,496 | 17,158,901 | 1.397 |
+| tests/draft7/default.json :: invalid type for default | 2 | 146,310,723 | 185,525,265 | 1.268 |
+| tests/draft7/default.json :: invalid string value for default | 2 | 106,516,459 | 121,709,686 | 1.143 |
+| tests/draft7/definitions.json :: valid definition | 1 | 1,928,542 | 43,915,173 | 22.771 |
+| tests/draft7/definitions.json :: invalid definition | 1 | 1,915,414 | 32,432,326 | 16.932 |
+| tests/draft7/dependencies.json :: dependencies | 7 | 186,018,750 | 348,315,998 | 1.872 |
+| tests/draft7/dependencies.json :: dependencies with empty array | 3 | 408,309,900 | 407,855,652 | 0.999 |
+| tests/draft7/dependencies.json :: multiple dependencies | 6 | 76,368,313 | 142,448,435 | 1.865 |
+| tests/draft7/dependencies.json :: multiple dependencies subschema | 5 | 85,820,109 | 190,425,216 | 2.219 |
+| tests/draft7/dependencies.json :: dependencies with boolean subschemas | 4 | 96,382,973 | 243,315,681 | 2.524 |
+| tests/draft7/dependencies.json :: dependencies with escaped characters | 7 | 35,066,614 | 65,553,915 | 1.869 |
+| tests/draft7/enum.json :: simple enum validation | 2 | 112,083,489 | 238,714,692 | 2.130 |
+| tests/draft7/enum.json :: heterogeneous enum validation | 5 | 17,905,677 | 30,882,309 | 1.725 |
+| tests/draft7/enum.json :: heterogeneous enum-with-null validation | 3 | 136,260,576 | 213,085,517 | 1.564 |
+| tests/draft7/enum.json :: enums in properties | 6 | 83,761,036 | 207,914,282 | 2.482 |
+| tests/draft7/enum.json :: enum with escaped characters | 3 | 153,905,418 | 313,979,890 | 2.040 |
+| tests/draft7/enum.json :: enum with false does not match 0 | 3 | 102,286,330 | 349,112,332 | 3.413 |
+| tests/draft7/enum.json :: enum with true does not match 1 | 3 | 103,438,393 | 348,336,313 | 3.368 |
+| tests/draft7/enum.json :: enum with 0 does not match false | 3 | 146,966,571 | 238,306,951 | 1.622 |
+| tests/draft7/enum.json :: enum with 1 does not match true | 3 | 147,067,907 | 229,965,115 | 1.564 |
+| tests/draft7/enum.json :: nul characters in strings | 2 | 97,346,263 | 151,863,010 | 1.560 |
+| tests/draft7/exclusiveMaximum.json :: exclusiveMaximum validation | 4 | 111,916,138 | 297,666,935 | 2.660 |
+| tests/draft7/exclusiveMinimum.json :: exclusiveMinimum validation | 4 | 110,471,122 | 285,120,676 | 2.581 |
+| tests/draft7/if-then-else.json :: if and then without else | 3 | 97,762,573 | 226,778,403 | 2.320 |
+| tests/draft7/if-then-else.json :: if and else without then | 3 | 72,647,735 | 156,111,167 | 2.149 |
+| tests/draft7/if-then-else.json :: validate against correct branch, then vs else | 4 | 52,912,201 | 168,505,270 | 3.185 |
+| tests/draft7/if-then-else.json :: if with boolean schema true | 2 | 112,626,290 | 235,342,031 | 2.090 |
+| tests/draft7/if-then-else.json :: if with boolean schema false | 2 | 109,820,195 | 227,615,531 | 2.073 |
+| tests/draft7/if-then-else.json :: if appears at the end when serialized (keyword processing sequence) | 4 | 60,342,620 | 98,336,022 | 1.630 |
+| tests/draft7/infinite-loop-detection.json :: evaluating the same schema location against the same data location twice is not a sign of an infinite loop | 2 | 71,834,256 | 117,588,724 | 1.637 |
+| tests/draft7/items.json :: a schema given for items | 4 | 124,089,114 | 222,959,934 | 1.797 |
+| tests/draft7/items.json :: an array of schemas for items | 6 | 191,987,768 | 273,163,886 | 1.423 |
+| tests/draft7/items.json :: items with boolean schema (true) | 2 | 289,053,655 | 286,216,848 | 0.990 |
+| tests/draft7/items.json :: items with boolean schema (false) | 2 | 81,294,581 | 199,108,911 | 2.449 |
+| tests/draft7/items.json :: items with boolean schemas | 3 | 138,418,427 | 247,178,075 | 1.786 |
+| tests/draft7/items.json :: items and subitems | 6 | 34,006,779 | 71,825,149 | 2.112 |
+| tests/draft7/items.json :: nested items | 3 | 17,978,211 | 63,289,248 | 3.520 |
+| tests/draft7/maximum.json :: maximum validation | 4 | 176,003,132 | 314,194,094 | 1.785 |
+| tests/draft7/maximum.json :: maximum validation with unsigned integer | 4 | 165,386,618 | 293,861,184 | 1.777 |
+| tests/draft7/maxItems.json :: maxItems validation | 4 | 191,925,459 | 313,415,489 | 1.633 |
+| tests/draft7/maxLength.json :: maxLength validation | 5 | 142,877,787 | 178,017,783 | 1.246 |
+| tests/draft7/maxProperties.json :: maxProperties validation | 6 | 123,213,877 | 173,835,881 | 1.411 |
+| tests/draft7/maxProperties.json :: maxProperties = 0 means the object is empty | 2 | 64,437,955 | 99,793,906 | 1.549 |
+| tests/draft7/minimum.json :: minimum validation | 4 | 175,473,657 | 313,084,704 | 1.784 |
+| tests/draft7/minimum.json :: minimum validation with signed integer | 7 | 184,043,909 | 374,730,903 | 2.036 |
+| tests/draft7/minItems.json :: minItems validation | 4 | 187,315,360 | 322,454,092 | 1.721 |
+| tests/draft7/minLength.json :: minLength validation | 5 | 115,882,653 | 185,501,984 | 1.601 |
+| tests/draft7/minProperties.json :: minProperties validation | 6 | 131,849,535 | 190,258,732 | 1.443 |
+| tests/draft7/multipleOf.json :: by int | 3 | 115,924,730 | 173,084,409 | 1.493 |
+| tests/draft7/multipleOf.json :: by number | 3 | 96,140,340 | 140,588,090 | 1.462 |
+| tests/draft7/multipleOf.json :: by small number | 2 | 72,237,519 | 116,775,529 | 1.617 |
+| tests/draft7/multipleOf.json :: invalid instance should not raise error when float division = inf | 1 | 13,905,523 | 15,498,217 | 1.115 |
+| tests/draft7/not.json :: not | 2 | 75,082,656 | 230,315,227 | 3.067 |
+| tests/draft7/not.json :: not multiple types | 3 | 72,086,662 | 280,409,998 | 3.890 |
+| tests/draft7/not.json :: not more complex schema | 3 | 82,788,029 | 257,032,173 | 3.105 |
+| tests/draft7/not.json :: forbidden property | 2 | 87,694,408 | 188,916,603 | 2.154 |
+| tests/draft7/not.json :: not with boolean schema true | 1 | 57,500,623 | 130,199,880 | 2.264 |
+| tests/draft7/not.json :: not with boolean schema false | 1 | 146,831,096 | 153,215,950 | 1.043 |
+| tests/draft7/oneOf.json :: oneOf | 4 | 32,266,612 | 108,880,860 | 3.374 |
+| tests/draft7/oneOf.json :: oneOf with base schema | 3 | 45,837,564 | 78,208,402 | 1.706 |
+| tests/draft7/oneOf.json :: oneOf with boolean schemas, all true | 1 | 49,363,960 | 135,313,441 | 2.741 |
+| tests/draft7/oneOf.json :: oneOf with boolean schemas, one true | 1 | 27,554,301 | 158,396,413 | 5.749 |
+| tests/draft7/oneOf.json :: oneOf with boolean schemas, more than one true | 1 | 49,875,115 | 133,487,389 | 2.676 |
+| tests/draft7/oneOf.json :: oneOf with boolean schemas, all false | 1 | 18,088,530 | 132,994,052 | 7.352 |
+| tests/draft7/oneOf.json :: oneOf complex types | 4 | 34,402,399 | 134,322,825 | 3.904 |
+| tests/draft7/oneOf.json :: oneOf with empty schema | 2 | 63,857,606 | 234,770,160 | 3.676 |
+| tests/draft7/oneOf.json :: oneOf with required | 4 | 29,118,088 | 147,567,106 | 5.068 |
+| tests/draft7/oneOf.json :: oneOf with missing optional property | 4 | 36,432,850 | 167,053,080 | 4.585 |
+| tests/draft7/oneOf.json :: nested oneOf, to check validation semantics | 2 | 46,533,822 | 239,643,316 | 5.150 |
+| tests/draft7/optional/bignum.json :: integer | 1 | 27,848,792 | 28,819,525 | 1.035 |
+| tests/draft7/optional/bignum.json :: number | 1 | 128,886,985 | 123,274,750 | 0.956 |
+| tests/draft7/optional/bignum.json :: integer | 1 | 27,931,239 | 29,762,060 | 1.066 |
+| tests/draft7/optional/bignum.json :: number | 1 | 133,707,922 | 138,167,375 | 1.033 |
+| tests/draft7/optional/bignum.json :: string | 1 | 63,483,262 | 131,828,392 | 2.077 |
+| tests/draft7/optional/bignum.json :: integer comparison | 1 | 125,378,261 | 116,558,796 | 0.930 |
+| tests/draft7/optional/bignum.json :: float comparison with high precision | 1 | 51,695,286 | 110,422,728 | 2.136 |
+| tests/draft7/optional/bignum.json :: integer comparison | 1 | 122,481,255 | 111,865,765 | 0.913 |
+| tests/draft7/optional/bignum.json :: float comparison with high precision on negative numbers | 1 | 52,736,025 | 110,047,189 | 2.087 |
+| tests/draft7/optional/content.json :: validation of string-encoded content based on media type | 3 | 403,327,410 | 410,533,073 | 1.018 |
+| tests/draft7/optional/content.json :: validation of binary string-encoding | 3 | 412,059,230 | 399,038,152 | 0.968 |
+| tests/draft7/optional/content.json :: validation of binary-encoded media type documents | 4 | 529,011,780 | 545,269,253 | 1.031 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex $ does not match trailing newline | 2 | 52,681,524 | 57,829,846 | 1.098 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex converts \t to horizontal tab | 2 | 52,780,607 | 61,335,420 | 1.162 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex escapes control codes with \c and upper letter | 2 | 53,159,991 | 62,641,463 | 1.178 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 regex escapes control codes with \c and lower letter | 2 | 51,657,299 | 62,059,539 | 1.201 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \d matches ascii digits only | 3 | 52,716,020 | 67,189,905 | 1.275 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \D matches everything but ascii digits | 3 | 57,090,571 | 60,857,110 | 1.066 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \w matches ascii letters only | 2 | 53,810,304 | 62,973,803 | 1.170 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \W matches everything but ascii letters | 2 | 53,101,770 | 62,686,921 | 1.181 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \s matches whitespace | 11 | 65,311,715 | 67,348,531 | 1.031 |
+| tests/draft7/optional/ecmascript-regex.json :: ECMA 262 \S matches everything but whitespace | 11 | 50,567,415 | 71,726,691 | 1.418 |
+| tests/draft7/optional/float-overflow.json :: all integers are multiples of 0.5, if overflow is handled | 1 | 13,864,755 | 15,623,724 | 1.127 |
+| tests/draft7/optional/non-bmp-regex.json :: Proper UTF-16 surrogate pair handling: pattern | 7 | 56,269,507 | 69,431,704 | 1.234 |
+| tests/draft7/optional/non-bmp-regex.json :: Proper UTF-16 surrogate pair handling: patternProperties | 5 | 13,398,523 | 43,888,097 | 3.276 |
+| tests/draft7/pattern.json :: pattern validation | 8 | 156,029,152 | 167,396,867 | 1.073 |
+| tests/draft7/pattern.json :: pattern is not anchored | 1 | 45,444,622 | 45,041,635 | 0.991 |
+| tests/draft7/patternProperties.json :: patternProperties validates properties matching a regex | 7 | 22,905,535 | 58,908,685 | 2.572 |
+| tests/draft7/patternProperties.json :: multiple simultaneous patternProperties are validated | 6 | 11,491,415 | 26,416,042 | 2.299 |
+| tests/draft7/patternProperties.json :: regexes are not anchored by default and are case sensitive | 4 | 12,111,638 | 27,728,220 | 2.289 |
+| tests/draft7/patternProperties.json :: patternProperties with boolean schemas | 5 | 13,829,979 | 49,319,902 | 3.566 |
+| tests/draft7/properties.json :: object properties validation | 6 | 122,142,809 | 278,283,091 | 2.278 |
+| tests/draft7/properties.json :: properties with boolean schema | 4 | 95,478,318 | 241,775,646 | 2.532 |
+| tests/draft7/properties.json :: properties with escaped characters | 2 | 57,612,728 | 136,670,576 | 2.372 |
+| tests/draft7/propertyNames.json :: propertyNames validation | 6 | 75,301,202 | 127,497,266 | 1.693 |
+| tests/draft7/propertyNames.json :: propertyNames with boolean schema true | 2 | 289,217,966 | 296,909,649 | 1.027 |
+| tests/draft7/propertyNames.json :: propertyNames with boolean schema false | 2 | 44,649,794 | 126,613,259 | 2.836 |
+| tests/draft7/ref.json :: root pointer ref | 4 | 38,212,808 | 99,352,374 | 2.600 |
+| tests/draft7/ref.json :: relative pointer ref to object | 2 | 89,936,318 | 172,790,264 | 1.921 |
+| tests/draft7/ref.json :: relative pointer ref to array | 2 | 90,604,983 | 149,467,700 | 1.650 |
+| tests/draft7/ref.json :: escaped pointer ref | 6 | 89,770,052 | 195,069,506 | 2.173 |
+| tests/draft7/ref.json :: nested refs | 2 | 107,031,575 | 225,643,334 | 2.108 |
+| tests/draft7/ref.json :: ref overrides any sibling keywords | 3 | 79,647,366 | 193,177,221 | 2.425 |
+| tests/draft7/ref.json :: remote ref, containing refs itself | 2 | 5,785,941 | 88,402,282 | 15.279 |
+| tests/draft7/ref.json :: property named $ref that is not a reference | 2 | 94,317,981 | 196,314,134 | 2.081 |
+| tests/draft7/ref.json :: property named $ref, containing an actual $ref | 2 | 93,800,236 | 192,788,464 | 2.055 |
+| tests/draft7/ref.json :: $ref to boolean schema true | 1 | 154,213,093 | 149,830,993 | 0.972 |
+| tests/draft7/ref.json :: $ref to boolean schema false | 1 | 57,355,913 | 134,949,167 | 2.353 |
+| tests/draft7/ref.json :: refs with quote | 2 | 89,857,548 | 180,122,841 | 2.005 |
+| tests/draft7/ref.json :: naive replacement of $ref with its destination is not correct | 2 | 24,706,716 | 36,178,485 | 1.464 |
+| tests/draft7/refRemote.json :: remote ref | 2 | 106,503,278 | 226,625,044 | 2.128 |
+| tests/draft7/required.json :: required validation | 5 | 179,955,396 | 345,380,604 | 1.919 |
+| tests/draft7/required.json :: required default validation | 1 | 147,018,803 | 158,431,451 | 1.078 |
+| tests/draft7/required.json :: required with empty array | 1 | 146,822,344 | 153,028,696 | 1.042 |
+| tests/draft7/required.json :: required with escaped characters | 2 | 67,843,838 | 157,967,435 | 2.328 |
+| tests/draft7/type.json :: integer type matches integers | 9 | 84,854,716 | 217,684,597 | 2.565 |
+| tests/draft7/type.json :: number type matches numbers | 9 | 106,771,396 | 376,823,335 | 3.529 |
+| tests/draft7/type.json :: string type matches strings | 9 | 109,260,314 | 380,086,850 | 3.479 |
+| tests/draft7/type.json :: object type matches objects | 7 | 82,466,727 | 353,815,228 | 4.290 |
+| tests/draft7/type.json :: array type matches arrays | 7 | 85,086,147 | 361,500,616 | 4.249 |
+| tests/draft7/type.json :: boolean type matches booleans | 10 | 91,352,140 | 373,567,213 | 4.089 |
+| tests/draft7/type.json :: null type matches only the null object | 10 | 83,253,029 | 385,668,384 | 4.632 |
+| tests/draft7/type.json :: multiple types can be specified in an array | 7 | 91,212,514 | 243,713,670 | 2.672 |
+| tests/draft7/type.json :: type as array with one item | 2 | 118,261,375 | 245,469,800 | 2.076 |
+| tests/draft7/type.json :: type: array or object | 5 | 107,698,630 | 328,108,645 | 3.047 |
+| tests/draft7/type.json :: type: array, object or null | 5 | 151,460,540 | 344,194,743 | 2.273 |
+| tests/draft7/uniqueItems.json :: uniqueItems validation | 23 | 16,070,372 | 24,908,232 | 1.550 |
+| tests/draft7/uniqueItems.json :: uniqueItems with an array of items | 8 | 32,024,129 | 53,152,889 | 1.660 |
+| tests/draft7/uniqueItems.json :: uniqueItems with an array of items and additionalItems=false | 5 | 43,569,800 | 97,061,590 | 2.228 |
+| tests/draft7/uniqueItems.json :: uniqueItems=false validation | 15 | 1,234,124,557 | 767,203,256 | 0.622 |
+| tests/draft7/uniqueItems.json :: uniqueItems=false with an array of items | 8 | 287,731,008 | 306,291,195 | 1.065 |
+| tests/draft7/uniqueItems.json :: uniqueItems=false with an array of items and additionalItems=false | 5 | 181,768,940 | 246,541,887 | 1.356 |
 
 ## Excluded cases
 

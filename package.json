@@ -52,6 +52,8 @@
       "default": "./dist/standalone/instance.js"
     },
     "./dist/standalone/instance.js": "./dist/standalone/instance.js",
+    "./dist/compile/codegen": "./dist/compile/codegen.js",
+    "./dist/compile/codegen.js": "./dist/compile/codegen.js",
     "./dist/runtime/*": "./dist/runtime/*.js",
     "./dist/runtime/*.js": "./dist/runtime/*.js",
     "./lib/*": "./lib/*",
@@ -74,6 +76,7 @@
     "bench": "node bench/runner.js"
   },
   "devDependencies": {
+    "ajv-formats": "^3.0.1",
     "ajv-reference": "npm:ajv@8.20.0",
     "benchmark": "^2.1.4"
   }
