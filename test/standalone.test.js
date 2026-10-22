@@ -549,6 +549,93 @@ test("a format ajv cannot carry fails generation with ajv's error", () => {
   );
 });
 
+test("a data-reference format resolves from the supplied formats code", () => {
+  const sides = prepareSides();
+  const formats =
+    "({email: /^[^@]+@[^@]+$/, even: {type: 'string', validate: (v) => v.length % 2 === 0}})";
+  const {_Code} = require("ajv-reference/dist/compile/codegen/code");
+  const setup = (ajv) => {
+    ajv.addFormat("email", /^[^@]+@[^@]+$/);
+    ajv.addFormat("even", {type: "string", validate: (value) => value.length % 2 === 0});
+    // Registered but absent from the supplied code: ajv's generated module
+    // resolves the name from that code, so it is unknown there.
+    ajv.addFormat("registered", /^z+$/);
+  };
+  const reference = new AjvReference({
+    strict: false,
+    $data: true,
+    code: {source: true, formats: new _Code(formats)},
+  });
+  const replacement = new AjvReplacement({
+    strict: false,
+    $data: true,
+    code: {source: true, formats},
+  });
+  setup(reference);
+  setup(replacement);
+  const generated = generatedPair(sides, {reference, replacement}, {
+    type: "object",
+    properties: {fmt: {type: "string"}, value: {type: "string", format: {$data: "/fmt"}}},
+  });
+  const documents = [
+    {fmt: "email", value: "a@b.com"},
+    {fmt: "email", value: "nope"},
+    {fmt: "even", value: "22"},
+    {fmt: "even", value: "23"},
+    {fmt: "registered", value: "zz"},
+    {fmt: "unknown", value: "x"},
+    {value: "x"},
+    {fmt: 5, value: "x"},
+  ];
+  assert.deepStrictEqual(
+    runAll(generated.replacement.module, documents),
+    runAll(generated.reference.module, documents),
+  );
+  unload(generated.reference);
+  unload(generated.replacement);
+});
+
+test("a data-reference format needs formats code exactly where ajv does", () => {
+  const setup = (ajv) => {
+    ajv.addFormat("hex", /^[0-9a-f]+$/);
+    ajv.addFormat("even", (value) => value.length % 2 === 0);
+  };
+  const onlyData = {type: "string", format: {$data: "/fmt"}};
+  const onlyDataPair = extensionPair(setup, {$data: true});
+  assert.throws(
+    () => standaloneReference(onlyDataPair.reference, onlyDataPair.reference.compile(clone(onlyData))),
+    /CodeGen: "code" for formats0 not defined/,
+  );
+  assert.throws(
+    () =>
+      standaloneReplacement(
+        onlyDataPair.replacement,
+        onlyDataPair.replacement.compile(clone(onlyData)),
+      ),
+    /CodeGen: "code" for formats0 not defined/,
+  );
+  // A literal format rule comes first, so ajv's data-reference scope is
+  // formats2: the rule is compiled once per applicable type group.
+  const mixed = {
+    type: "object",
+    properties: {
+      a: {type: "string", format: "hex"},
+      fmt: {type: "string"},
+      b: {type: "string", format: {$data: "/fmt"}},
+    },
+  };
+  const mixedPair = extensionPair(setup, {$data: true});
+  assert.throws(
+    () => standaloneReference(mixedPair.reference, mixedPair.reference.compile(clone(mixed))),
+    /CodeGen: "code" for formats2 not defined/,
+  );
+  assert.throws(
+    () =>
+      standaloneReplacement(mixedPair.replacement, mixedPair.replacement.compile(clone(mixed))),
+    /CodeGen: "code" for formats2 not defined/,
+  );
+});
+
 test("an unused function format does not stop generation", () => {
   const side = prepareSides().replacement;
   const ajv = new AjvReplacement({strict: false, code: {source: true}});
