@@ -3,8 +3,9 @@
 A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
 `ajv` API and, for schemas that use ajv's default draft-07 dialect, its JSON
 Schema 2019-09 and 2020-12 dialects, or its JSON Type Definition validator,
-together with the formats and the custom keywords the host project registers,
-returns the same valid or invalid verdict and the same error report as ajv.
+together with the formats, the custom keywords, and the discriminator option the
+host project uses, returns the same valid or invalid verdict and the same error
+report as ajv.
 JSON Type Definition schemas also produce the same JSON text through the
 serializer and read JSON text at the parser's offsets, reporting the parser's
 messages and positions.
@@ -225,7 +226,8 @@ registered with `addSchema` (for example the remote schemas used by the publishe
 benchmark suite). The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
-`multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, and `$data`.
+`multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, `$data`, and
+`discriminator`.
 
 ## Formats
 
@@ -305,6 +307,60 @@ validate({limit: 5, value: 9});   // false: "must be <= 5"
   generated module does; without it generation fails with ajv's
   `CodeGen: "code" for formats… not defined` error. Validators generated for
   schemas without references are unchanged.
+
+## Discriminators
+
+With ajv's `discriminator` option enabled, a tagged union validates only the
+`oneOf` branch its tag property selects:
+
+```js
+const Ajv = require("ajv");
+const ajv = new Ajv({discriminator: true});
+const validate = ajv.compile({
+  type: "object",
+  required: ["kind"],
+  discriminator: {propertyName: "kind"},
+  oneOf: [
+    {properties: {kind: {const: "circle"}, radius: {type: "number"}}, required: ["radius"]},
+    {properties: {kind: {const: "rect"}, width: {type: "number"}, height: {type: "number"}},
+     required: ["width", "height"]},
+  ],
+});
+validate({kind: "circle", radius: 2});   // true
+validate({kind: "oval"});                // false: value of tag "kind" must be in oneOf
+```
+
+The `ajv`, `ajv/dist/2019`, and `ajv/dist/2020` constructors register the
+keyword exactly as ajv does. A project keeps its constructor options, schema,
+and validation code unchanged.
+
+- A schema carrying the annotation must name `propertyName` and must have a
+  `oneOf`; `mapping` is refused. Every member (or the schema its `$ref` names)
+  must declare `properties[propertyName]` with a `const` or non-empty `enum` of
+  distinct strings, and the tag must be required by the schema or by every
+  member. A schema that breaks one of these rules is refused at compile time
+  with ajv's message, and a schema ajv accepts compiles here.
+- A tag that is not a string reports ajv's
+  `tag "<name>" must be string`; a tag value outside the mapping reports
+  `value of tag "<name>" must be in oneOf`. The selected member's own errors
+  follow, at the paths ajv reports them.
+- Entries carry ajv's `keyword`, `params` (`error`, `tag`, `tagValue`),
+  `schemaPath`, and message under first-error and complete reporting, in the
+  same order. `verbose: true` adds the same `schema`, `parentSchema`, and
+  `data` context, and `messages: false` omits messages from the same entries.
+- The selected member's evaluated properties and items reach the enclosing
+  schema through `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`,
+  `dependentSchemas`, and `$ref`, so `unevaluatedProperties` and
+  `unevaluatedItems` see what ajv sees. This includes ajv's behaviour for a
+  failed selected member.
+- Without the option, the annotation is an ordinary unknown keyword: strict
+  mode refuses the schema with `strict mode: unknown keyword: "discriminator"`,
+  `strict: "log"` reports it, and with strictness off `oneOf` validates
+  normally. Schemas and projects that do not use the annotation are unaffected
+  whether the option is on or off.
+- Generating a standalone validator for a schema that uses the annotation, and
+  asynchronous validation of such a schema, are outside the covered surface.
+  JSON Type Definition's own discriminator form is unchanged.
 
 ## Custom keywords
 
@@ -780,6 +836,20 @@ npm run verify  # prints the verdict comparison
   compares the values each receives and its report entries, and repeats schemas
   without references with the option enabled, disabled, and omitted.
 - `test/fixtures/data-reference-project` contains that unchanged project.
+- `test/discriminator.test.js` runs an unchanged project that enables ajv's
+  `discriminator` option through the draft-07, 2019-09, and 2020-12 entry
+  points. It compiles tagged unions whose members each require their own
+  property, validates documents through every member, an unknown tag, a
+  non-string tag, a missing tag, a missing member property, an extra property,
+  and non-object data, and requires identical verdicts, report entries in the
+  same order, `errorsText` summaries, and extended context under first-error,
+  complete, verbose, and message-free reporting. It also compares the
+  compile-time refusals for every discriminator requirement, the missing
+  reference report, the treatment of the annotation when the option is off
+  under each strictness setting, evaluated names reaching
+  `unevaluatedProperties`, and schemas that do not use the annotation with the
+  option enabled.
+- `test/fixtures/discriminator-project` contains that unchanged project.
 - `test/conformance2019.test.js` runs the complete published JSON Schema
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and
@@ -984,6 +1054,8 @@ npm run verify  # prints the verdict comparison
 - `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,
   its text generator, its text parser, and its error reporting.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
+- `lib/discriminator.js` – ajv's discriminator keyword, registered by the
+  `discriminator` option.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.
 - `lib/uri.js`, `lib/util.js` – URI, pointer, and comparison helpers.
