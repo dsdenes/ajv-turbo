@@ -1,0 +1,9 @@
+{
+  "mode": "retail",
+  "address": "1 Market Street",
+  "coupon": "SAVE20",
+  "items": [
+    {"sku": "ABC-1", "price": 12.5, "tags": ["new", "sale"]},
+    {"sku": "XYZ-42", "price": 0}
+  ]
+}

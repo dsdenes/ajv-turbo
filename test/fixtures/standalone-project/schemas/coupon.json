@@ -1,0 +1,7 @@
+{
+  "$id": "https://standalone.example/coupon",
+  "oneOf": [
+    {"type": "null"},
+    {"type": "string", "minLength": 4, "maxLength": 12, "pattern": "^[A-Z0-9]+$"}
+  ]
+}

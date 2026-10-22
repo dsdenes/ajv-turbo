@@ -8,11 +8,12 @@ const {spawnSync} = require("node:child_process");
 
 const ROOT = path.join(__dirname, "..", "..");
 
-function hashDirectory(dir) {
+function hashDirectory(dir, ignore = []) {
   const hash = crypto.createHash("sha256");
+  const skip = new Set(ignore);
   const walk = (current) => {
     for (const entry of fs.readdirSync(current, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name))) {
-      if (entry.name === "node_modules") continue;
+      if (entry.name === "node_modules" || skip.has(entry.name)) continue;
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) walk(full);
       else {
@@ -55,10 +56,11 @@ function runProject(workProject, extraEnv = {}) {
 }
 
 // Runs a project against the published ajv and then against this package,
-// without editing anything but the installed `ajv` dependency.
-function runWithBothValidators(sourceProject, workProject, extraEnv = {}) {
+// without editing anything but the installed `ajv` dependency. `ignore` names
+// directories the project itself writes, such as generated validators.
+function runWithBothValidators(sourceProject, workProject, extraEnv = {}, ignore = []) {
   prepareCopy(sourceProject, workProject);
-  const projectBefore = hashDirectory(workProject);
+  const projectBefore = hashDirectory(workProject, ignore);
 
   linkValidator(workProject, path.dirname(require.resolve("ajv-reference/package.json")));
   const reference = runProject(workProject, extraEnv);
@@ -66,7 +68,7 @@ function runWithBothValidators(sourceProject, workProject, extraEnv = {}) {
   linkValidator(workProject, ROOT);
   const replacement = runProject(workProject, extraEnv);
 
-  assert.strictEqual(hashDirectory(workProject), projectBefore, "project copy was edited");
+  assert.strictEqual(hashDirectory(workProject, ignore), projectBefore, "project copy was edited");
   return {reference, replacement};
 }
 

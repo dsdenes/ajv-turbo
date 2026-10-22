@@ -36,6 +36,24 @@
       "default": "./dist/jtd.js"
     },
     "./dist/jtd.js": "./dist/jtd.js",
+    "./dist/standalone": {
+      "types": "./dist/standalone.d.ts",
+      "import": "./dist/standalone.js",
+      "require": "./dist/standalone.js",
+      "default": "./dist/standalone.js"
+    },
+    "./dist/standalone.js": "./dist/standalone.js",
+    "./dist/standalone/index": "./dist/standalone/index.js",
+    "./dist/standalone/index.js": "./dist/standalone/index.js",
+    "./dist/standalone/instance": {
+      "types": "./dist/standalone/instance.d.ts",
+      "import": "./dist/standalone/instance.js",
+      "require": "./dist/standalone/instance.js",
+      "default": "./dist/standalone/instance.js"
+    },
+    "./dist/standalone/instance.js": "./dist/standalone/instance.js",
+    "./dist/runtime/*": "./dist/runtime/*.js",
+    "./dist/runtime/*.js": "./dist/runtime/*.js",
     "./lib/*": "./lib/*",
     "./dist/refs/*": "./dist/refs/*",
     "./package.json": "./package.json"

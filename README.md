@@ -268,10 +268,10 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
-`$data`), standalone validators and the JSON Type Definition serializer and
-parser, the `verbose` and `messages` error options, schema dialects other than
-draft-07, 2019-09, 2020-12, and JSON Type Definition, errors raised while
-compiling an invalid keyword definition, and throughput.
+`$data`), the JSON Type Definition serializer and parser, the `verbose` and
+`messages` error options, schema dialects other than draft-07, 2019-09,
+2020-12, and JSON Type Definition, errors raised while compiling an invalid
+keyword definition, and throughput.
 
 ## Asynchronous validation
 
@@ -323,6 +323,51 @@ supports:
 - `errorsText(errors, {separator, dataVar})` derives the same summary ajv
   derives from the same report, and returns `"No errors"` when there are none.
 - `validate.errors` is `null` for valid data, exactly as ajv leaves it.
+
+## Standalone validators
+
+`ajv/dist/standalone` generates a standalone module for a compiled validator or
+for registered schemas, exactly as ajv's standalone generator does:
+
+```js
+const fs = require("fs");
+const Ajv = require("ajv");
+const standaloneCode = require("ajv/dist/standalone");
+
+const ajv = new Ajv({code: {source: true}});
+const validate = ajv.compile(schema);
+
+fs.writeFileSync("validate.js", standaloneCode(ajv, validate));
+const validateDocument = require("./validate");   // no build step
+```
+
+- The generated module is self-contained: it carries the schema environment and
+  the interpreter it validates with, and requires no package at run time.
+- `standaloneCode(ajv, validate)` exports one validator as `module.exports` and
+  `module.exports.default`. A map from export name to registered schema id
+  exports one named validator per entry, and calling it with no second argument
+  exports every schema registered on the instance (the meta-schema excluded),
+  the way ajv's generator does.
+- Generated validators return the same verdict, the same first error, and the
+  same complete report in the same order as ajv's generated validators for the
+  same schema and documents, including through references, applicators,
+  conditionals, and the draft-07 keywords.
+- The options the validator was compiled with are baked into the generated
+  module, as they are in ajv's generated code. `allErrors` selects complete
+  reporting; `coerceTypes`, `useDefaults`, and `removeAdditional` rewrite the
+  document through the generated validator exactly as they do through a
+  directly compiled one.
+- A `$async` schema generates an asynchronous validator that resolves with the
+  validated document and rejects with an error carrying `errors`, matching
+  ajv's generated asynchronous validators. Standalone generation for other
+  dialects, registered formats, and registered custom keywords is not claimed
+  to match ajv.
+- `ajv/dist/standalone/instance` provides ajv's `AjvPack` wrapper, which
+  generates and evaluates each compiled validator in memory.
+- `dist/runtime/ucs2length`, `dist/runtime/equal`, and
+  `dist/runtime/validation_error` mirror the runtime helpers ajv's generated
+  modules require, so a validator that ajv generated keeps running after this
+  package takes ajv's place.
 
 ## Drop-in use
 
@@ -530,6 +575,18 @@ npm run verify  # prints the verdict comparison
   schema-valued items, dependent requirements, bounded contains, unevaluated
   tracking, formats, custom keywords, asynchronous validation, and rewriting
   options; it is used by the 2020-12 dialect and drop-in check.
+- `test/standalone.test.js` generates standalone validators from ajv and from
+  this package for the covered draft-07 corpus and the benchmark schemas,
+  loads both in a plain Node.js program, and requires the same verdict, the
+  same first error, and the same complete report in the same order for every
+  document under default and complete reporting. It also covers the export
+  forms, options that rewrite data, `$async` validators, runtime-helper
+  compatibility, and the unchanged project fixture below.
+- `test/fixtures/standalone-project` contains the unchanged project that
+  generates validators with `standaloneCode`, writes them into its own
+  codebase, and requires them; it runs through its normal path first with ajv
+  and then after this package takes ajv's place, and both runs must print the
+  same verdicts and reports.
 - `test/fixtures/json-schema-test-suite-2020` holds the official 2020-12
   conformance corpus and remotes at the commit ajv's own test suite pins.
 
@@ -537,7 +594,12 @@ npm run verify  # prints the verdict comparison
 
 - `index.js`, `index.mjs`, `index.d.ts` – CommonJS, ESM, and TypeScript entry points.
 - `dist/jtd.js`, `dist/jtd.d.ts` – the published `ajv/dist/jtd` entry point.
+- `dist/standalone.js`, `dist/standalone.d.ts` – the published
+  `ajv/dist/standalone` entry point; `dist/standalone/instance.js` – `AjvPack`.
+- `dist/runtime/` – runtime helpers ajv's generated modules require.
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
+- `lib/standalone.js` – standalone module generation, and
+  `lib/standalone-runtime.js` – the runtime embedded in generated modules.
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
 - `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,

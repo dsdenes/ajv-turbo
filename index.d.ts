@@ -6,10 +6,17 @@ export interface ErrorObject {
   message?: string;
 }
 
+export interface ValidateSource {
+  validateName: string;
+  validateCode: string;
+  scopeValues: Record<string, unknown>;
+}
+
 export interface ValidateFunction<T = unknown> {
   (data: T): boolean;
   errors?: ErrorObject[] | null;
   schema: unknown;
+  source?: ValidateSource;
   $async?: false;
 }
 
@@ -17,6 +24,7 @@ export interface AsyncValidateFunction<T = unknown> {
   (data: T): Promise<T>;
   errors?: ErrorObject[] | null;
   schema: unknown;
+  source?: ValidateSource;
   $async: true;
 }
 
