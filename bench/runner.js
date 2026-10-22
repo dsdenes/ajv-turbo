@@ -442,7 +442,7 @@ function main(argv) {
     fs.writeFileSync(options.markdown, markdown);
   }
   if (options.json !== null) {
-    const json = {environment, summary, whole, rows, excluded};
+    const json = {environment: runEnvironment, summary, whole, rows, excluded};
     fs.mkdirSync(path.dirname(options.json), {recursive: true});
     fs.writeFileSync(options.json, JSON.stringify(json, null, 2) + "\n");
   }
