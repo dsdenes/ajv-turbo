@@ -297,8 +297,14 @@ validate({limit: 5, value: 9});   // false: "must be <= 5"
 - Without the option, a schema that uses a reference where a literal value is
   expected is rejected at compile time with ajv's message, and a project that
   never enables `$data` is unaffected.
-- Standalone generation for schemas that use data references is not covered;
-  validators generated for schemas without references are unchanged.
+- Standalone generation carries the option: a generated validator reads the
+  same locations from the document and produces the same verdict and report as
+  ajv's generated validator, including documents where the location is absent
+  or holds a value of the wrong type. A `format` whose name comes from the
+  document needs the formats code `code.formats` names, exactly as ajv's
+  generated module does; without it generation fails with ajv's
+  `CodeGen: "code" for formats… not defined` error. Validators generated for
+  schemas without references are unchanged.
 
 ## Custom keywords
 
@@ -504,6 +510,12 @@ const validateDocument = require("./validate");   // no build step
   rule travels as its own source, it must be self-contained: a function that
   closes over values defined outside its body cannot see them in the generated
   module.
+- A schema compiled with ajv's `$data` option generates a validator that reads
+  the referenced locations from the document at run time. Its verdict and
+  report match ajv's generated validator under every reporting mode, including
+  documents where the location is absent or holds a value of the wrong type. A
+  `format` named by the document resolves from the `code.formats` expression at
+  load time, as it does in ajv's generated module.
 - `ajv/dist/standalone/instance` provides ajv's `AjvPack` wrapper, which
   generates and evaluates each compiled validator in memory.
 - `dist/runtime/ucs2length`, `dist/runtime/equal`, and
@@ -781,6 +793,17 @@ npm run verify  # prints the verdict comparison
   codebase, and requires them; it runs through its normal path first with ajv
   and then after this package takes ajv's place, and both runs must print the
   same verdicts and reports.
+- `test/standalone-data-references.test.js` runs an unchanged project that
+  generates standalone validators for a schema reading a numeric limit and the
+  required member names from the document, and for a schema reading nothing
+  from it. Both runs print every verdict, report, and `errorsText` summary
+  under default, complete, verbose, and message-free reporting for documents
+  the schema accepts, documents it rejects at each location it reads, and
+  documents whose location is absent or holds an unusable type; every line must
+  match. It also loads a generated data-reference validator in a separate
+  Node.js process where the package cannot resolve.
+- `test/fixtures/standalone-data-reference-project` contains that unchanged
+  project.
 - `test/fixtures/json-schema-test-suite-2020` holds the official 2020-12
   conformance corpus and remotes at the commit ajv's own test suite pins.
 
