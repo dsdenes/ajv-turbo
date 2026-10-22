@@ -70,16 +70,85 @@ export interface KeywordErrorContext {
   schemaType: readonly JSONType[];
   schema: unknown;
   schemaValue?: unknown;
+  schemaCode?: unknown;
   parentSchema: Record<string, unknown>;
   data: unknown;
   params: Record<string, unknown>;
 }
 
 export interface KeywordErrorDefinition {
-  message?: string | ((context: KeywordErrorContext) => string);
+  message?: string | ((context: KeywordErrorContext) => string | Code);
   params?:
     | Record<string, unknown>
-    | ((context: KeywordErrorContext) => Record<string, unknown>);
+    | ((context: KeywordErrorContext) => Record<string, unknown> | Code);
+}
+
+/** The code generator a code keyword's `gen` property exposes. */
+export interface CodeGen {
+  const(nameOrPrefix: string | Name, rhs?: unknown): Name;
+  let(nameOrPrefix: string | Name, rhs?: unknown): Name;
+  var(nameOrPrefix: string | Name, rhs?: unknown): Name;
+  assign(lhs: unknown, rhs: unknown): CodeGen;
+  add(lhs: unknown, rhs: unknown): CodeGen;
+  code(value: unknown): CodeGen;
+  if(condition: unknown, thenBody?: () => void, elseBody?: () => void): CodeGen;
+  elseIf(condition: unknown): CodeGen;
+  else(): CodeGen;
+  endIf(): CodeGen;
+  forOf(nameOrPrefix: string | Name, iterable: unknown, body: (name: Name) => void, varKind?: unknown): CodeGen;
+  forIn(nameOrPrefix: string | Name, object: unknown, body: (name: Name) => void, varKind?: unknown): CodeGen;
+  forRange(nameOrPrefix: string | Name, from: unknown, to: unknown, body: (name: Name) => void, varKind?: unknown): CodeGen;
+  endFor(): CodeGen;
+  break(label?: string): CodeGen;
+  continue(label?: string): CodeGen;
+  return(value?: unknown): CodeGen;
+  throw(value: unknown): CodeGen;
+  try(tryBody: () => void, catchCode?: (error: Name) => void, finallyCode?: () => void): CodeGen;
+  block(body: () => void): CodeGen;
+  name(prefix: string): Name;
+  scopeValue(prefixOrName: string | Name, value: {ref?: unknown; key?: unknown; code?: unknown}): Name;
+  object(...keyValues: [unknown, unknown][]): Code;
+  ternary(condition: unknown, ifTrue: unknown, ifFalse: unknown): Code;
+}
+
+/** The compile-time context ajv hands a code keyword's `code` function. */
+export interface KeywordCxt {
+  gen: CodeGen;
+  allErrors: boolean;
+  keyword: string;
+  data: Name;
+  schema: unknown;
+  schemaValue: unknown;
+  schemaCode: unknown;
+  schemaType: readonly JSONType[];
+  parentSchema: Record<string, unknown>;
+  params: Record<string, unknown>;
+  def: KeywordDefinition;
+  it: Record<string, unknown>;
+  errsCount?: number;
+  result(condition: unknown, successAction?: () => void, failAction?: () => void): void;
+  failResult(condition: unknown, successAction?: () => void, failAction?: () => void): void;
+  pass(condition: unknown, failAction?: () => void): void;
+  fail(condition?: unknown): void;
+  fail$data(condition?: unknown): void;
+  error(append?: boolean, errorParams?: Record<string, unknown>, errorPaths?: unknown): void;
+  $dataError(): void;
+  reset(): void;
+  ok(condition: unknown): void;
+  setParams(params: Record<string, unknown>, assign?: boolean): void;
+  block$data(valid: unknown, codeBlock: () => void, $dataValid?: unknown): void;
+  check$data(valid?: unknown, $dataValid?: unknown): void;
+  invalid$data(): unknown;
+  subschema(appl: Record<string, unknown>, valid: unknown): unknown;
+  mergeEvaluated(schemaCxt: unknown, toName?: unknown): void;
+  mergeValidEvaluated(schemaCxt: unknown, valid: unknown): boolean | undefined;
+}
+
+/** A keyword whose definition contributes generated validation code. */
+export interface CodeKeywordDefinition extends KeywordDefinition {
+  code(cxt: KeywordCxt, ruleType?: string): void;
+  trackErrors?: boolean;
+  allowUndefined?: boolean;
 }
 
 export interface KeywordDefinition {
@@ -90,6 +159,10 @@ export interface KeywordDefinition {
   validate?: KeywordValidate;
   compile?: KeywordCompile;
   macro?: KeywordMacro;
+  code?: (cxt: KeywordCxt, ruleType?: string) => void;
+  error?: KeywordErrorDefinition;
+  trackErrors?: boolean;
+  allowUndefined?: boolean;
   metaSchema?: unknown;
   post?: boolean;
   before?: string;

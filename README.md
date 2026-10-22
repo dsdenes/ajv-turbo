@@ -362,6 +362,59 @@ ajv.addKeyword({
 });
 ```
 
+A keyword may also contribute generated validation code, ajv's `code` form.
+The `code` function runs once per schema location while the schema is compiled
+and builds the rule with the compile-time context and ajv's code helpers:
+
+```js
+const {_, nil, str} = Ajv;
+
+ajv.addKeyword({
+  keyword: "startsWith",
+  type: "string",
+  schemaType: "string",
+  code(cxt) {
+    const {data, schema} = cxt;
+    cxt.fail(_`${data}.indexOf(${schema}) !== 0`);
+  },
+});
+
+ajv.addKeyword({
+  keyword: "range",
+  type: "number",
+  schemaType: "array",
+  metaSchema: {type: "array", items: {type: "number"}, minItems: 2, maxItems: 2},
+  code(cxt) {
+    const {schema, parentSchema, data} = cxt;
+    const [min, max] = schema;
+    const eq = parentSchema.exclusiveRange ? _`=` : nil;
+    cxt.fail(_`${data} <${eq} ${min} || ${data} >${eq} ${max}`);
+  },
+});
+```
+
+The context exposes the current `data`, the keyword's `schema`, `schemaCode`
+and `schemaValue`, `parentSchema`, the generator `gen`, `allErrors`, and the
+schema compilation context `it`. `cxt.fail(condition)` reports the keyword's
+error when the condition is true; `cxt.pass(condition)` reports it when the
+condition is false; `cxt.result`, `cxt.ok`, and `cxt.error` cover the other
+shapes ajv's own keywords use. `cxt.setParams(params)` supplies the values an
+`error.params(context)` function reads, and an `error.message(context)`
+function supplies the message. Without an `error` declaration the report is
+ajv's `must pass "<keyword>" keyword validation` with empty params, at
+`<schemaPath>/<keyword>`, with the same `instancePath`, `data`, `schema`, and
+`parentSchema` fields as the other forms. `cxt.fail$data(condition)` folds the
+document-sourced value checks into the condition, and `cxt.block$data` reports
+the definition's `$dataError` for an unusable document value.
+
+The generator `cxt.gen` provides the operations ajv's own keywords use:
+`if`/`elseIf`/`else`/`endIf`, `const`/`let`/`var`, `assign`/`add`, `code`,
+`forOf`/`forIn`/`forRange`, `break`/`continue`, `try`/`catch`, `name`,
+`scopeValue`, `object`, and `ternary`. The `_`, `str`, `stringify`, `nil`, and
+`Name` helpers are the ones exported by the package. A definition that also
+declares `macro`, `compile`, or `validate` is executed as a code keyword, as in
+ajv.
+
 The remaining declarations ajv accepts on a definition are honoured as well:
 
 ```js
@@ -478,8 +531,8 @@ Both routes register through the same path as `addKeyword`, after the dialect
 meta-schemas, so rule order, placement, value schemas, rewritten values, and
 error reports are identical however the project supplies its definitions.
 
-Out of scope, and not claimed to match ajv: keyword definitions that contribute
-generated validation code (`code`), the optional declarations described above on
+Out of scope, and not claimed to match ajv: asynchronous keywords defined in
+the generated-code form, the optional declarations described above on
 the JSON Type Definition entry point, the JSON Type Definition parser, standalone
 generation of those declarations (a generated validator carries the validation
 rules and macros it carried before), schema dialects other than draft-07,
@@ -780,6 +833,13 @@ npm run verify  # prints the verdict comparison
   same verdicts and printed reports as ajv. The project exercises typed and
   untyped macros, fragments that refer to local and registered schemas, a
   function that reports its own error entries, and keyword removal.
+- `test/code-keywords.test.js` runs an unchanged project whose custom keywords
+  contribute generated validation code through the draft-07, 2019-09, and
+  2020-12 entry points, under first-error, complete, verbose, and message-free
+  reporting, and requires the same verdicts, reports, and compile-time errors
+  as ajv. The project exercises a string rule, a number rule restricted to its
+  type, a generated loop with its own params and messages, a rule with a value
+  schema, a declared schema type, and a document-sourced value.
 - `test/jtd.test.js` compiles every JSON Type Definition form — empty schemas,
   each type, enumeration, elements, properties with optional properties and
   additional properties, discriminators with their mappings, dictionaries,
