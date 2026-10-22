@@ -3,13 +3,16 @@
 const {
   collectSuiteCases,
   collectSuite2019Cases,
+  collectSuite2020Cases,
   collectBenchmarkCases,
   readRemoteSchemas,
+  readRemoteSchemas2020,
+  usableRemotes,
 } = require("./lib/cases");
 
-function buildValidator(Ajv, source) {
+function buildValidator(Ajv, source, remotes = readRemoteSchemas()) {
   const ajv = new Ajv({strict: false});
-  for (const remote of readRemoteSchemas()) {
+  for (const remote of remotes) {
     try {
       ajv.addSchema(remote.schema, remote.uri);
     } catch (error) {
@@ -23,9 +26,13 @@ function clone(value) {
   return value === undefined ? value : structuredClone(value);
 }
 
-function compare(name, cases, {AjvReference = require("ajv-reference"), AjvReplacement = require("../")} = {}) {
-  const oracle = buildValidator(AjvReference, "oracle");
-  const replacement = buildValidator(AjvReplacement, "replacement");
+function compare(
+  name,
+  cases,
+  {AjvReference = require("ajv-reference"), AjvReplacement = require("../"), remotes = readRemoteSchemas()} = {},
+) {
+  const oracle = buildValidator(AjvReference, "oracle", remotes);
+  const replacement = buildValidator(AjvReplacement, "replacement", remotes);
 
   let tests = 0;
   let agreements = 0;
@@ -97,11 +104,17 @@ if (require.main === module) {
     AjvReference: require("ajv-reference/dist/2019"),
     AjvReplacement: require("../dist/2019"),
   });
+  const suite2020 = compare("json-schema-test-suite draft2020-12", collectSuite2020Cases(), {
+    AjvReference: require("ajv-reference/dist/2020"),
+    AjvReplacement: require("../dist/2020"),
+    remotes: usableRemotes(require("ajv-reference/dist/2020"), readRemoteSchemas2020()),
+  });
   const bench = compare("ajv benchmark schemas (core keywords)", collectBenchmarkCases());
   print(suite);
   print(suite2019);
+  print(suite2020);
   print(bench);
-  const results = [suite, suite2019, bench];
+  const results = [suite, suite2019, suite2020, bench];
   const failed = results.some(
     (result) =>
       result.mismatches.length > 0 ||

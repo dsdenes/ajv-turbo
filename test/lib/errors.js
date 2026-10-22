@@ -3,9 +3,9 @@
 const assert = require("node:assert");
 const {readRemoteSchemas} = require("./cases");
 
-function buildValidator(Ajv, source, opts = {}) {
+function buildValidator(Ajv, source, opts = {}, remotes = readRemoteSchemas()) {
   const ajv = new Ajv({strict: false, ...opts});
-  for (const remote of readRemoteSchemas()) {
+  for (const remote of remotes) {
     try {
       ajv.addSchema(remote.schema, remote.uri);
     } catch (error) {
@@ -34,10 +34,14 @@ function firstDiff(actual, expected) {
 function compareErrors(
   cases,
   opts = {},
-  {AjvReference = require("ajv-reference"), AjvReplacement = require("../../")} = {},
+  {
+    AjvReference = require("ajv-reference"),
+    AjvReplacement = require("../../"),
+    remotes = readRemoteSchemas(),
+  } = {},
 ) {
-  const oracle = buildValidator(AjvReference, "oracle", opts);
-  const replacement = buildValidator(AjvReplacement, "replacement", opts);
+  const oracle = buildValidator(AjvReference, "oracle", opts, remotes);
+  const replacement = buildValidator(AjvReplacement, "replacement", opts, remotes);
 
   let tests = 0;
   let agreements = 0;

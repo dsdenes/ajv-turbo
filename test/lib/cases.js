@@ -5,6 +5,7 @@ const path = require("path");
 
 const FIXTURES = path.join(__dirname, "..", "fixtures");
 const SUITE_DIR = path.join(FIXTURES, "json-schema-test-suite");
+const SUITE_2020_DIR = path.join(FIXTURES, "json-schema-test-suite-2020");
 const BENCH_SCHEMA_DIR = path.join(FIXTURES, "ajv-benchmark-schemas");
 
 // Draft-07 validation keywords plus the annotations that never change a
@@ -99,8 +100,12 @@ function readJsonFiles(dir) {
 }
 
 function readRemoteSchemas() {
+  return readRemoteSchemasFrom(SUITE_DIR);
+}
+
+function readRemoteSchemasFrom(suiteDir) {
   const remotes = [];
-  const dir = path.join(SUITE_DIR, "remotes");
+  const dir = path.join(suiteDir, "remotes");
   for (const file of readJsonFiles(dir)) {
     const relative = path.relative(dir, file).split(path.sep).join("/");
     remotes.push({
@@ -109,6 +114,25 @@ function readRemoteSchemas() {
     });
   }
   return remotes;
+}
+
+function readRemoteSchemas2020() {
+  return readRemoteSchemasFrom(SUITE_2020_DIR);
+}
+
+// The suite snapshot carries remotes for every dialect. A validator can only
+// register the ones whose meta-schema it publishes, so a dialect comparison
+// keeps exactly the remotes its reference implementation accepts.
+function usableRemotes(Ajv, remotes) {
+  const probe = new Ajv({strict: false});
+  return remotes.filter((remote) => {
+    try {
+      probe.addSchema(remote.schema, remote.uri);
+      return true;
+    } catch {
+      return false;
+    }
+  });
 }
 
 function normaliseGroup(group, source) {
@@ -144,6 +168,16 @@ function collectSuite2019Cases() {
   return cases;
 }
 
+function collectSuite2020Cases() {
+  const cases = [];
+  for (const file of readJsonFiles(path.join(SUITE_2020_DIR, "tests", "draft2020-12"))) {
+    const relative = path.relative(SUITE_2020_DIR, file).split(path.sep).join("/");
+    const groups = JSON.parse(fs.readFileSync(file, "utf8"));
+    for (const group of groups) cases.push(normaliseGroup(group, relative));
+  }
+  return cases;
+}
+
 function collectBenchmarkCases() {
   const cases = [];
   for (const file of readJsonFiles(BENCH_SCHEMA_DIR)) {
@@ -160,9 +194,13 @@ module.exports = {
   isCoveredSchema,
   collectSuiteCases,
   collectSuite2019Cases,
+  collectSuite2020Cases,
   collectBenchmarkCases,
   readRemoteSchemas,
+  readRemoteSchemas2020,
+  usableRemotes,
   readJsonFiles,
   SUITE_DIR,
+  SUITE_2020_DIR,
   FIXTURES,
 };

@@ -2,12 +2,12 @@
 
 A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
 `ajv` API and, for schemas that use ajv's default draft-07 dialect or its
-JSON Schema 2019-09 dialect, the formats and the custom keywords the host
-project registers, returns the same valid or invalid verdict and the same error
-report as ajv. Schemas marked `$async: true`, asynchronous custom validation
-rules, and asynchronous format rules produce the same settled outcomes, reports,
-and validated data as ajv; schemas that do not request asynchronous validation
-keep validating synchronously and immediately.
+JSON Schema 2019-09 and 2020-12 dialects, the formats and the custom keywords
+the host project registers, returns the same valid or invalid verdict and the
+same error report as ajv. Schemas marked `$async: true`, asynchronous custom
+validation rules, and asynchronous format rules produce the same settled
+outcomes, reports, and validated data as ajv; schemas that do not request
+asynchronous validation keep validating synchronously and immediately.
 
 Entry points mirror ajv's:
 
@@ -15,6 +15,7 @@ Entry points mirror ajv's:
 |---|---|
 |`require("ajv")` / `import Ajv from "ajv"`|draft-07 (ajv's default)|
 |`require("ajv/dist/2019")` / `import Ajv2019 from "ajv/dist/2019"`|2019-09|
+|`require("ajv/dist/2020")` / `import Ajv2020 from "ajv/dist/2020"`|2020-12|
 
 
 ## JSON Schema 2019-09
@@ -47,6 +48,46 @@ along with the 2019-09 meta-schema and its vocabulary meta-schemas
 - The 2019-09 meta-schema validates schemas the way ajv's does, so malformed
   `$id`, `$anchor`, and keyword values are rejected at the same point and with
   the same message.
+
+## JSON Schema 2020-12
+
+`ajv/dist/2020` exposes the 2020-12 dialect under the same class and options as
+ajv's `Ajv2020`, including its default meta-schema. A project that imports that
+entry point keeps its code, schemas, and configuration unchanged.
+
+The 2020-12 surface keeps the dynamic-reference, dependent-requirement,
+bounded-contains, and unevaluated vocabularies that 2019-09 introduced, and adds
+`prefixItems` and a schema-valued `items` that validates the items after
+`prefixItems`, along with the 2020-12 meta-schema and its vocabulary
+meta-schemas (`meta/core`, `meta/applicator`, `meta/unevaluated`,
+`meta/validation`, `meta/meta-data`, `meta/format-annotation`, `meta/content`).
+
+- `prefixItems` validates the tuple prefix and `items` validates every item
+  after it; `additionalItems` is not part of the dialect and is ignored, as in
+  ajv. A boolean `items: false` reports ajv's limit error with the same
+  parameters and message, and a schema-valued `items` reports per-item errors
+  at the `items` schema path.
+- `$dynamicAnchor` and `$dynamicRef` resolve against the dynamic anchors of the
+  current validation call, exactly as ajv resolves them, including anchors
+  reached through a referenced schema.
+- `dependentRequired`, `dependentSchemas`, and bounded `contains` behave as
+  they do in 2019-09, with ajv's error reports.
+- Evaluated property names and item counts are tracked through `prefixItems`,
+  `items`, `contains`, references, and the applicators, so
+  `unevaluatedProperties` and `unevaluatedItems` see exactly what ajv sees.
+- Annotations (`title`, `description`, `default`, `examples`, `readOnly`,
+  `writeOnly`, `deprecated`, `$comment`, `contentEncoding`,
+  `contentMediaType`, `contentSchema`) never change a verdict; `default` still
+  feeds `useDefaults`.
+- The 2020-12 meta-schema validates schemas the way ajv's does, so malformed
+  `$id`, `$anchor`, `$dynamicAnchor`, `prefixItems`, `items`, and
+  out-of-range keyword values are rejected at the same point and with the same
+  message.
+
+The options that rewrite a validated document (`coerceTypes`, `useDefaults`,
+`removeAdditional`) and asynchronous validation behave as they do for the other
+dialects. As in ajv, `useDefaults` does not assign defaults from
+`prefixItems`; only object `properties` supply defaults.
 
 ## Covered subset
 
@@ -156,10 +197,9 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule (`code`, `macro`, `compile`, `post`, `before`, `implements`,
-`$data`), standalone validators, schema dialects other than draft-07 and
-2019-09 (2020-12 and JSON Type Definition remain later work), errors raised
-while compiling an invalid schema or an invalid keyword definition, and
-throughput.
+`$data`), standalone validators, schema dialects other than draft-07, 2019-09,
+and 2020-12 (JSON Type Definition remains later work), errors raised while
+compiling an invalid keyword definition, and throughput.
 
 ## Asynchronous validation
 
@@ -238,7 +278,16 @@ const ajv = new Ajv2019();
 ```
 
 `import Ajv2019 from "ajv/dist/2019"` and `import {Ajv2019} from "ajv/dist/2019"`
-are supported too.
+are supported too. A project on the 2020-12 dialect does the same with its entry
+point:
+
+```js
+const Ajv2020 = require("ajv/dist/2020");
+const ajv = new Ajv2020();
+```
+
+`import Ajv2020 from "ajv/dist/2020"` and `import {Ajv2020} from "ajv/dist/2020"`
+work as well.
 
 ## Benchmark
 
@@ -295,6 +344,20 @@ npm run verify  # prints the verdict comparison
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and
   identical error reports under both default and `allErrors` reporting.
+- `test/conformance2020.test.js` does the same for the complete published JSON
+  Schema 2020-12 conformance corpus through `ajv/dist/2020` and this package's
+  `dist/2020` entry, and additionally requires that every schema ajv accepts
+  compiles here and that every schema ajv's 2020-12 meta-schema rejects is
+  rejected with the same message.
+- `test/dialect2020.test.js` validates valid and invalid documents that exercise
+  tuple `prefixItems` and schema-valued `items`, dynamic anchors and dynamic
+  references, dependent requirements and dependent schemas, bounded contains,
+  evaluated property and item tracking, and annotations that do not affect a
+  verdict, plus rewriting options and asynchronous validation. It also compares
+  the compile-time rejection of malformed 2020-12 schemas and runs the unchanged
+  2020-12 project fixture through its normal path twice — first with ajv, then
+  after repointing `node_modules/ajv` at this package — and requires identical
+  verdicts, reports, and rewritten documents.
 - `test/dialect2019.test.js` validates documents through recursive references,
   anchors, dependent requirements, bounded contains, and unevaluated properties
   and items, combined with references and applicators, plus registered formats,
@@ -352,12 +415,20 @@ npm run verify  # prints the verdict comparison
   bounded contains, unevaluated tracking, formats, custom keywords,
   asynchronous validation, and rewriting options; it is used by the dialect
   and drop-in check.
+- `test/fixtures/project-2020` contains the unchanged project that imports
+  `ajv/dist/2020` and exercises dynamic references, prefix items and
+  schema-valued items, dependent requirements, bounded contains, unevaluated
+  tracking, formats, custom keywords, asynchronous validation, and rewriting
+  options; it is used by the 2020-12 dialect and drop-in check.
+- `test/fixtures/json-schema-test-suite-2020` holds the official 2020-12
+  conformance corpus and remotes at the commit ajv's own test suite pins.
 
 ## Layout
 
 - `index.js`, `index.mjs`, `index.d.ts` – CommonJS, ESM, and TypeScript entry points.
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
+- `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.
@@ -365,4 +436,7 @@ npm run verify  # prints the verdict comparison
 - `lib/refs/json-schema-draft-07.json` – draft-07 meta-schema used for meta refs.
 - `lib/refs/json-schema-2019-09/` – the 2019-09 meta-schema and vocabulary
   meta-schemas registered by the 2019-09 class.
+- `lib/refs/json-schema-2020-12/` – the 2020-12 meta-schema and vocabulary
+  meta-schemas registered by the 2020-12 class; `dist/refs/` mirrors them for
+  the published `dist/refs/*` imports.
 - `test/` – verification scripts and unchanged third-party fixtures.
