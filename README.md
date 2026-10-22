@@ -191,6 +191,40 @@ validate(data);
 
 `import Ajv from "ajv"` and `import {Ajv} from "ajv"` work as well.
 
+## Benchmark
+
+`npm run bench` measures this package against the published ajv benchmark suite
+and writes a report. The suite is
+[`json-schema-benchmark`](https://github.com/ebdrup/json-schema-benchmark) at
+commit `e9c884f9edd38438a150fef0e9a2a1173c0fcc50`, the performance benchmark
+referenced from ajv's README, together with its JSON-Schema-Test-Suite submodule
+pinned at commit `bcf1dc81ae099ade2a9642c672c06ee1af1bb489`. Both validators are
+constructed the way the suite constructs ajv (`{schemaId: "auto"}` with every
+remote schema registered under `localhost:1234`), and every case is measured
+with Benchmark.js using the suite's own procedure: one iteration validates every
+document of the case, and each target runs under the library's default
+minTime/maxTime/minSamples settings.
+
+The runner:
+
+- compiles every published case with both validators and excludes, as the
+  published runner does for a validator that fails a test, the cases whose
+  schema one of them cannot compile (the report lists them);
+- validates every document of every included case with both validators and
+  fails if any verdict differs;
+- reports per-case throughput for both validators, the per-case ratio, the
+  geometric mean of those ratios, and whole-suite throughput;
+- records the exact Node.js and V8 version, both suite commits, the replacement
+  commit, the machine, and the measurement settings.
+
+The final measurement is kept in [`bench/REPORT.md`](bench/REPORT.md). Use
+`--markdown=<path>` and `--json=<path>` to write the results elsewhere, and
+`--minimum=<ratio>` to change the required geometric mean (default `1.2`).
+
+```sh
+npm run bench -- --markdown=bench/REPORT.md --json=bench/report.json
+```
+
 ## Verification
 
 ```sh
@@ -237,6 +271,12 @@ npm run verify  # prints the verdict comparison
   (asynchronous custom keywords), and `test/fixtures/async-format-project`
   (asynchronous formats registered through `addFormat` and the constructor
   option).
+- `test/benchmark.test.js` validates every document of every published benchmark
+  case through an unchanged project that imports `ajv`, then repoints
+  `node_modules/ajv` at this package without editing the project, its schemas,
+  or its documents, and requires the same verdict for every case and document.
+- `test/fixtures/benchmark-project` contains the unchanged project used by that
+  check; the case list it receives is built from the published corpus.
 - `test/fixtures/existing-project` contains the unchanged project used by that
   check.
 - `test/fixtures/keyword-project` contains the unchanged project that registers
@@ -247,6 +287,8 @@ npm run verify  # prints the verdict comparison
 - `index.js`, `index.mjs`, `index.d.ts` – CommonJS, ESM, and TypeScript entry points.
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
+- `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
+- `bench/runner.js` – published benchmark suite comparison and report.
 - `lib/uri.js`, `lib/util.js` – URI, pointer, and comparison helpers.
 - `lib/refs/json-schema-draft-07.json` – draft-07 meta-schema used for meta refs.
 - `test/` – verification scripts and unchanged third-party fixtures.

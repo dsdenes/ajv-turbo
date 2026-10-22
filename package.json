@@ -31,9 +31,11 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "verify": "node test/verify.js"
+    "verify": "node test/verify.js",
+    "bench": "node bench/runner.js"
   },
   "devDependencies": {
-    "ajv-reference": "npm:ajv@8.20.0"
+    "ajv-reference": "npm:ajv@8.20.0",
+    "benchmark": "^2.1.4"
   }
 }

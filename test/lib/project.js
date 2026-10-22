@@ -40,11 +40,11 @@ function linkValidator(workProject, packageDir) {
   fs.symlinkSync(packageDir, link, "dir");
 }
 
-function runProject(workProject) {
+function runProject(workProject, extraEnv = {}) {
   const result = spawnSync(process.execPath, ["index.js"], {
     cwd: workProject,
     encoding: "utf8",
-    env: {...process.env, NODE_ENV: "test"},
+    env: {...process.env, NODE_ENV: "test", ...extraEnv},
   });
   assert.strictEqual(result.status, 0, `project failed to start: ${result.stderr}`);
   return result.stdout
@@ -56,15 +56,15 @@ function runProject(workProject) {
 
 // Runs a project against the published ajv and then against this package,
 // without editing anything but the installed `ajv` dependency.
-function runWithBothValidators(sourceProject, workProject) {
+function runWithBothValidators(sourceProject, workProject, extraEnv = {}) {
   prepareCopy(sourceProject, workProject);
   const projectBefore = hashDirectory(workProject);
 
   linkValidator(workProject, path.dirname(require.resolve("ajv-reference/package.json")));
-  const reference = runProject(workProject);
+  const reference = runProject(workProject, extraEnv);
 
   linkValidator(workProject, ROOT);
-  const replacement = runProject(workProject);
+  const replacement = runProject(workProject, extraEnv);
 
   assert.strictEqual(hashDirectory(workProject), projectBefore, "project copy was edited");
   return {reference, replacement};

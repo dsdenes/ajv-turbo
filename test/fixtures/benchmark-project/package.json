@@ -1,0 +1,6 @@
+{
+  "name": "benchmark-project",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unchanged project used to validate the published benchmark corpus with either validator"
+}
