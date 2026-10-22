@@ -1,0 +1,9 @@
+{
+  "$id": "https://example.test/schemas/macro.json",
+  "type": "object",
+  "required": ["tenant"],
+  "properties": {
+    "tenant": {"tenantSplit": true}
+  },
+  "additionalProperties": false
+}

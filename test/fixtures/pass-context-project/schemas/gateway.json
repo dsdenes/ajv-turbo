@@ -1,0 +1,4 @@
+{
+  "$id": "https://example.test/schemas/gateway.json",
+  "$ref": "https://example.test/schemas/account.json"
+}

@@ -1,0 +1,11 @@
+{
+  "$id": "https://example.test/schemas/account.json",
+  "type": "object",
+  "required": ["tenant", "seats", "profile"],
+  "properties": {
+    "tenant": {"type": "string", "tenant": "acme"},
+    "seats": {"type": "number", "minimum": 1},
+    "profile": {"$ref": "https://example.test/schemas/profile.json"}
+  },
+  "additionalProperties": false
+}

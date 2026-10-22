@@ -1,0 +1,5 @@
+{
+  "$id": "https://example.test/schemas/plain.json",
+  "type": "object",
+  "additionalProperties": {"recordOnly": true}
+}

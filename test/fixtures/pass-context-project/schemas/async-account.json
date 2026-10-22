@@ -1,0 +1,5 @@
+{
+  "$id": "https://example.test/schemas/async-account.json",
+  "$async": true,
+  "$ref": "https://example.test/schemas/async-body.json"
+}

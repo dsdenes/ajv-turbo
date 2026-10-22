@@ -1,0 +1,11 @@
+{
+  "$id": "https://example.test/schemas/async-service.json",
+  "$async": true,
+  "type": "object",
+  "required": ["tenant", "handle"],
+  "properties": {
+    "tenant": {"type": "string", "asyncTenant": "acme"},
+    "handle": {"type": "string", "asyncSlug": true}
+  },
+  "additionalProperties": false
+}

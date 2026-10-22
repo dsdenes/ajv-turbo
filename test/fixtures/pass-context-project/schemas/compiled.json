@@ -1,0 +1,9 @@
+{
+  "$id": "https://example.test/schemas/compiled.json",
+  "type": "object",
+  "required": ["tenant"],
+  "properties": {
+    "tenant": {"type": "string", "compiledTenant": "acme"}
+  },
+  "additionalProperties": false
+}
