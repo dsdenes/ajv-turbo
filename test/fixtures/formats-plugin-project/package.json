@@ -1,0 +1,14 @@
+{
+  "name": "formats-plugin-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project that validates with ajv and loads ajv's official formats plugin",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^2.1.1"
+  }
+}

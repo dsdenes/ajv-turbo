@@ -1,10 +1,10 @@
-export interface ErrorObject {
+export interface ErrorObject<K extends string = string, P = Record<string, unknown>, S = unknown> {
   instancePath: string;
   schemaPath: string;
-  keyword: string;
-  params: Record<string, unknown>;
+  keyword: K;
+  params: P;
   message?: string;
-  schema?: unknown;
+  schema?: S;
   parentSchema?: unknown;
   data?: unknown;
 }
@@ -144,6 +144,12 @@ export interface KeywordCxt {
   mergeValidEvaluated(schemaCxt: unknown, valid: unknown): boolean | undefined;
 }
 
+/** An ajv extension: a function that registers formats, keywords, or both. */
+export interface Plugin<Opts> {
+  (ajv: Ajv, options?: Opts): Ajv;
+  [prop: string]: unknown;
+}
+
 /** A keyword whose definition contributes generated validation code. */
 export interface CodeKeywordDefinition extends KeywordDefinition {
   code(cxt: KeywordCxt, ruleType?: string): void;
@@ -179,6 +185,7 @@ export interface FormatDefinition {
   type?: "string" | "number";
   validate: string | RegExp | FormatValidator;
   async?: boolean;
+  compare?: (data1: string | number, data2: string | number) => number | undefined;
 }
 
 export type Format = RegExp | string | FormatValidator | FormatDefinition | true;

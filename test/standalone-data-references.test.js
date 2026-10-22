@@ -140,7 +140,20 @@ test("a generated data-reference validator runs without the package", () => {
   const file = path.join(dir, "validate.js");
   fs.writeFileSync(file, code);
 
+  // The repository installs development packages named `ajv` for comparison
+  // and plugin fixtures, so absence is simulated by refusing that name rather
+  // than relying on the run directory's position in the resolution chain.
   const script = [
+    "const Module = require('module');",
+    "const resolveFilename = Module._resolveFilename;",
+    "Module._resolveFilename = function (request, ...args) {",
+    "  if (request === 'ajv' || request.startsWith('ajv/')) {",
+    "    const error = new Error(`Cannot find module '${request}'`);",
+    "    error.code = 'MODULE_NOT_FOUND';",
+    "    throw error;",
+    "  }",
+    "  return resolveFilename.call(this, request, ...args);",
+    "};",
     "const validate = require(process.argv[1]);",
     "let packageAbsent = false;",
     "try { require.resolve('ajv'); } catch { packageAbsent = true; }",
