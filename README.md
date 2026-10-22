@@ -5,6 +5,8 @@ A dependency-free replacement for the `ajv` package on Node.js 24. It exposes th
 Schema 2019-09 and 2020-12 dialects, or its JSON Type Definition validator,
 together with the formats and the custom keywords the host project registers,
 returns the same valid or invalid verdict and the same error report as ajv.
+JSON Type Definition schemas also produce the same JSON text through the
+serializer.
 Schemas marked `$async: true`, asynchronous custom validation rules, and
 asynchronous format rules produce the same settled outcomes, reports, and
 validated data as ajv; schemas that do not request asynchronous validation keep
@@ -131,6 +133,36 @@ and settles through a promise exactly as ajv's does: it resolves with the
 validated document and rejects with a `ValidationError` carrying the report. A
 synchronous schema that contains an asynchronous subschema is rejected at
 compile time with ajv's message.
+
+`compileSerializer(schema)` returns the function that turns a value into JSON
+text, with ajv's text for the same schema and value:
+
+```js
+const AjvJTD = require("ajv/dist/jtd");
+const serialize = new AjvJTD().compileSerializer(schema);
+const text = serialize(value);
+```
+
+- Every form is written: empty schemas through `JSON.stringify`, `type` with
+  `timestamp` dates as ISO strings and the remaining types as their JavaScript
+  text, `enum` as a quoted string, `elements` as an array, `values` as an
+  object, `properties`/`optionalProperties`/`additionalProperties`,
+  `discriminator` with its mapping, and `ref` into `definitions`, including
+  recursive definitions.
+- Required properties are written in schema order. Optional properties are
+  written only when the value is not `undefined` and the property is the
+  value's own. Additional properties follow when allowed. `nullable` writes
+  `null` for `null` and `undefined`; `metadata` and a schema that carries only
+  `definitions` are annotations.
+- `specialNumbers: "null"` writes non-finite numbers as `null`; the default and
+  `"fast"` write their JavaScript text. `ownProperties` restricts dictionaries
+  and additional properties to the value's own keys.
+- The schema is validated where ajv validates it, so a schema ajv accepts for
+  serialization compiles and a schema ajv rejects is rejected with the same
+  message, including `No definition <ref>`.
+- Like ajv, the serializer trusts its input: it does not validate the value,
+  and a value of the wrong shape can throw a `TypeError` instead of producing
+  text.
 
 ## Covered subset
 
@@ -268,10 +300,10 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
-`$data`), the JSON Type Definition serializer and parser, the `verbose` and
-`messages` error options, schema dialects other than draft-07, 2019-09,
-2020-12, and JSON Type Definition, errors raised while compiling an invalid
-keyword definition, and throughput.
+`$data`), the JSON Type Definition parser, the `verbose` and `messages` error
+options, schema dialects other than draft-07, 2019-09, 2020-12, and JSON Type
+Definition, errors raised while compiling an invalid keyword definition, and
+throughput.
 
 ## Asynchronous validation
 
@@ -521,12 +553,24 @@ npm run verify  # prints the verdict comparison
   behaviour of the `ajv/dist/jtd` entry point, and runs the unchanged JSON Type
   Definition project fixture through its normal path twice — first with ajv,
   then after repointing `node_modules/ajv` at this package — requiring identical
-  output.
+  output. The same file drives `compileSerializer` over every form with the
+  same schemas and values under default options, `specialNumbers: "null"`, and
+  `ownProperties`, requiring the same text character for character, the same
+  JSON value when the text is read back, the same acceptance and rejection of
+  schemas with the same messages, and ajv's serializer caching and registry
+  behaviour.
 - `test/fixtures/jtd-project` contains the unchanged project that imports
   `ajv/dist/jtd` and validates documents against definitions, discriminators,
   dictionaries, nested elements, recursive references, and metadata unions,
   with both first-error and complete reporting, registered schemas, and
   `ajv.validate`.
+- `test/fixtures/jtd-serializer-project` contains the unchanged project that
+  imports `ajv/dist/jtd` and turns telemetry values into JSON text with
+  `compileSerializer`, covering empty schemas, types and timestamps (including
+  in-memory `Date` values), enumerations, elements, properties with optional
+  and additional members, discriminators, dictionaries, references, nullable
+  forms, and metadata. It runs through its normal path with ajv and then with
+  this package installed in ajv's place, requiring identical text.
 - `test/drop-in.test.js` copies the existing project fixture, runs its normal
   validation path with ajv, repoints `node_modules/ajv` at this package without
   editing the project's code, schemas, or configuration, runs the same path, and
@@ -603,7 +647,7 @@ npm run verify  # prints the verdict comparison
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
 - `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,
-  and its error reporting.
+  its text generator, and its error reporting.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.

@@ -1,0 +1,10 @@
+{
+  "discriminator": "kind",
+  "mapping": {
+    "started": {"properties": {"at": {"type": "timestamp"}, "id": {"type": "string"}}},
+    "stopped": {
+      "optionalProperties": {"reason": {"enum": ["done", "error"]}},
+      "additionalProperties": true
+    }
+  }
+}

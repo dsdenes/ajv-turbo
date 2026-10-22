@@ -11,6 +11,8 @@ const AjvReplacement = require("../dist/jtd");
 
 const SOURCE_PROJECT = path.join(__dirname, "fixtures", "jtd-project");
 const WORK_PROJECT = path.join(ROOT, ".tmp", "jtd-project");
+const SERIALIZER_PROJECT = path.join(__dirname, "fixtures", "jtd-serializer-project");
+const SERIALIZER_WORK_PROJECT = path.join(ROOT, ".tmp", "jtd-serializer-project");
 
 function clone(value) {
   return value === undefined ? undefined : structuredClone(value);
@@ -510,4 +512,166 @@ test("a JSON Type Definition project runs unchanged when the replacement takes a
     reference.some((row) => !row.case.endsWith(".first") && row.errors.length > 1),
     "expected a complete report",
   );
+});
+
+// --- JSON Type Definition text generation --------------------------------
+
+function serializerDocuments() {
+  return [
+    ...DOCUMENTS,
+    new Date("2020-01-02T03:04:05.678Z"),
+    new Date(NaN),
+    NaN,
+    Infinity,
+    -Infinity,
+    10n,
+    "he\"llo\\\n\u0000\u00ad\u2028\ud800",
+    Object.assign(Object.create({inherited: "i"}), {own: "o"}),
+    Object.assign(Object.create({y: 4}), {x: "a"}),
+    {a: undefined, b: 1},
+    {b: 2, c: 1, a: 3},
+  ];
+}
+
+// A runtime failure is compared by kind only: ajv's generated code names its
+// temporaries, and those names appear in TypeError messages.
+function serializerOutcome(serialize, document) {
+  try {
+    return {text: serialize(document)};
+  } catch (error) {
+    return {error: error.constructor.name};
+  }
+}
+
+test("JSON Type Definition text matches ajv character for character", () => {
+  const schemas = CASES.map((testCase) => testCase.schema).concat([{nullable: true}]);
+  for (const options of [{}, {specialNumbers: "null"}, {ownProperties: true}]) {
+    const oracle = new AjvReference(clone(options));
+    const replacement = new AjvReplacement(clone(options));
+    for (const schema of schemas) {
+      const serializeOracle = oracle.compileSerializer(clone(schema));
+      const serializeReplacement = replacement.compileSerializer(clone(schema));
+      for (const document of serializerDocuments()) {
+        const expected = serializerOutcome(serializeOracle, document);
+        const actual = serializerOutcome(serializeReplacement, document);
+        const context = JSON.stringify({options, schema, document}, (key, value) =>
+          typeof value === "bigint" ? `${value}n` : value,
+        );
+        assert.deepStrictEqual(actual, expected, context);
+        if (expected.text === undefined) continue;
+        // The text is an ordinary JSON document whenever ajv's text is one.
+        let expectedValue;
+        try {
+          expectedValue = JSON.parse(expected.text);
+        } catch {
+          continue;
+        }
+        assert.deepStrictEqual(JSON.parse(actual.text), expectedValue, context);
+      }
+    }
+  }
+});
+
+const SERIALIZER_MALFORMED = [
+  ...MALFORMED,
+  {name: "missing definition", schema: {ref: "missing"}},
+  {
+    name: "missing definition behind a reference",
+    schema: {definitions: {a: {ref: "missing"}}, ref: "a"},
+  },
+  {
+    name: "definition overlap",
+    schema: {definitions: {x: {properties: {a: {}}, optionalProperties: {a: {}}}}, ref: "x"},
+  },
+  {name: "mapping member null", schema: {discriminator: "t", mapping: {a: null}}},
+  {name: "mapping member number", schema: {discriminator: "t", mapping: {a: 5}}},
+  {name: "elements not a schema", schema: {elements: "x"}},
+  {name: "properties not a schema", schema: {properties: "x"}},
+  {name: "properties array", schema: {properties: ["x"]}},
+];
+
+test("the serializer rejects schemas where and as ajv rejects them", () => {
+  for (const {name, schema} of SERIALIZER_MALFORMED) {
+    for (const validateSchema of [true, false]) {
+      const oracle = new AjvReference({validateSchema});
+      const replacement = new AjvReplacement({validateSchema});
+      const expected = capture(() => {
+        oracle.compileSerializer(clone(schema));
+        return "compiled";
+      });
+      const actual = capture(() => {
+        replacement.compileSerializer(clone(schema));
+        return "compiled";
+      });
+      assert.deepStrictEqual(actual, expected, `${name} (validateSchema: ${validateSchema})`);
+    }
+  }
+});
+
+test("serializer compilation keeps ajv's caching and registry behaviour", () => {
+  const oracle = new AjvReference();
+  const replacement = new AjvReplacement();
+  const schema = {type: "string"};
+  const oracleSerialize = oracle.compileSerializer(schema);
+  const replacementSerialize = replacement.compileSerializer(schema);
+  assert.strictEqual(replacement.compileSerializer(schema), replacementSerialize);
+  assert.strictEqual(typeof replacementSerialize, "function");
+  assert.strictEqual(replacementSerialize(5), oracleSerialize(5));
+
+  // ajv registers an anonymous serializer schema under the empty key and
+  // validates a schema object only once, even when that attempt failed.
+  assert.strictEqual(typeof replacement.getSchema(""), "function");
+  let oracleDuplicate = null;
+  let replacementDuplicate = null;
+  try {
+    oracle.addSchema({type: "number"}, "");
+  } catch (error) {
+    oracleDuplicate = error.message;
+  }
+  try {
+    replacement.addSchema({type: "number"}, "");
+  } catch (error) {
+    replacementDuplicate = error.message;
+  }
+  assert.strictEqual(replacementDuplicate, oracleDuplicate);
+
+  const broken = {type: "nope"};
+  assert.throws(() => oracle.compileSerializer(broken));
+  assert.throws(() => replacement.compileSerializer(broken));
+  assert.strictEqual(replacement.compileSerializer(broken)(5), oracle.compileSerializer(broken)(5));
+
+  const withId = () => ({$id: "https://example.com/schema", type: "string"});
+  const oracleIds = new AjvReference({validateSchema: false});
+  const replacementIds = new AjvReplacement({validateSchema: false});
+  oracleIds.compileSerializer(withId());
+  replacementIds.compileSerializer(withId());
+  let oracleIdError = null;
+  let replacementIdError = null;
+  try {
+    oracleIds.compileSerializer(withId());
+  } catch (error) {
+    oracleIdError = error.message;
+  }
+  try {
+    replacementIds.compileSerializer(withId());
+  } catch (error) {
+    replacementIdError = error.message;
+  }
+  assert.strictEqual(replacementIdError, oracleIdError);
+});
+
+test("a JSON Type Definition serializer project runs unchanged with the replacement", () => {
+  const before = hashDirectory(SERIALIZER_PROJECT);
+  const {reference, replacement} = runWithBothValidators(
+    SERIALIZER_PROJECT,
+    SERIALIZER_WORK_PROJECT,
+  );
+
+  assert.deepStrictEqual(replacement, reference);
+  assert.strictEqual(hashDirectory(SERIALIZER_PROJECT), before, "fixture project was edited");
+  assert.ok(reference.length > 0, "expected the fixture to serialize documents");
+  for (const row of reference) {
+    assert.strictEqual(typeof row.text, "string", `${row.case} should produce text`);
+    assert.doesNotThrow(() => JSON.parse(row.text), `${row.case} should produce a JSON document`);
+  }
 });
