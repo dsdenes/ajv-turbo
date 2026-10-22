@@ -225,7 +225,7 @@ registered with `addSchema` (for example the remote schemas used by the publishe
 benchmark suite). The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
-`multipleOfPrecision`, `nullable`, `validateFormats`, and `formats`.
+`multipleOfPrecision`, `nullable`, `validateFormats`, `formats`, and `$data`.
 
 ## Formats
 
@@ -255,6 +255,50 @@ A definition without `type` applies to strings. A definition with `type:
 a string definition leaves non-strings untouched. `validateFormats: false`
 disables every format rule, including the check for formats the project never
 registered.
+
+## Data references
+
+With ajv's `$data` option enabled, a keyword value may name a location in the
+document being validated instead of holding a literal value:
+
+```js
+const ajv = new Ajv({$data: true});
+const validate = ajv.compile({
+  type: "object",
+  properties: {
+    limit: {type: "number"},
+    value: {type: "number", maximum: {$data: "/limit"}},
+  },
+});
+validate({limit: 5, value: 9});   // false: "must be <= 5"
+```
+
+- The reference is an absolute JSON pointer (`"/limit"`, `"/a/b"`, with `~0`
+  and `~1` escapes) or ajv's relative form (`"1/limit"`, `"0#"`). It resolves
+  against the root document, so the same location is read at every depth.
+- The keywords ajv gives data-reference support are covered: `maximum`,
+  `minimum`, `exclusiveMaximum`, `exclusiveMinimum`, `multipleOf`, `maxLength`,
+  `minLength`, `pattern`, `format`, `maxItems`, `minItems`, `uniqueItems`,
+  `maxProperties`, `minProperties`, `required`, `enum`, and `const`.
+- A reference whose location is absent leaves the keyword passing, exactly as
+  ajv does. A reference whose value has a type the keyword cannot use produces
+  ajv's report: the keyword's ordinary error with the resolved value for the
+  comparison, length, item, property, `pattern`, `format`, `const`, and
+  `multipleOf` rules, and `"<keyword>" keyword must be <type> ($data)` for
+  `required`, `enum`, and `uniqueItems`.
+- Verdicts and reports match ajv under default, complete, extended, and
+  message-free reporting, including verbose `schema` (the literal
+  `{$data: "..."}` object) and `parentSchema`.
+- A registered custom validation rule that declares `$data: true` receives the
+  resolved value as its schema argument; a rule that does not declare support
+  receives the literal schema value. A definition may also declare
+  `schemaType`; ajv then reports its `$data` type error when the resolved value
+  has another type.
+- Without the option, a schema that uses a reference where a literal value is
+  expected is rejected at compile time with ajv's message, and a project that
+  never enables `$data` is unaffected.
+- Standalone generation for schemas that use data references is not covered;
+  validators generated for schemas without references are unchanged.
 
 ## Custom keywords
 
@@ -340,10 +384,11 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   were compiled with.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
-validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
-`$data`), the JSON Type Definition parser, schema dialects other than draft-07,
-2019-09, 2020-12, and JSON Type Definition, errors raised while compiling an
-invalid keyword definition, and throughput.
+validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`),
+a definition's `$dataError` and `metaSchema` fields, the JSON Type Definition
+parser, schema dialects other than draft-07, 2019-09, 2020-12, and JSON Type
+Definition, errors raised while compiling an invalid keyword definition, and
+throughput.
 
 ## Asynchronous validation
 
@@ -569,6 +614,17 @@ npm run verify  # prints the verdict comparison
   project runs first with ajv and then with this package in ajv's place; every
   printed report and `errorsText` summary must match.
 - `test/fixtures/report-options-project` contains that unchanged project.
+- `test/data-references.test.js` runs an unchanged project that enables ajv's
+  `$data` option through the draft-07, 2019-09, and 2020-12 entry points. It
+  compiles schemas whose keyword values are absolute and relative references,
+  requires ajv's compile-time rejection when the option is off, and requires
+  identical verdicts and reports for documents whose referenced value
+  satisfies the keyword, violates it, is absent, or has the wrong type, under
+  default, complete, extended, and message-free reporting. It also registers a
+  custom rule that declares data-reference support and one that does not,
+  compares the values each receives and its report entries, and repeats schemas
+  without references with the option enabled, disabled, and omitted.
+- `test/fixtures/data-reference-project` contains that unchanged project.
 - `test/conformance2019.test.js` runs the complete published JSON Schema
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and

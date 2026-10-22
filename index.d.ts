@@ -62,6 +62,8 @@ export type KeywordMacro = (
 export interface KeywordDefinition {
   keyword?: string | readonly string[];
   type?: JSONType | readonly JSONType[];
+  schemaType?: JSONType | readonly JSONType[];
+  $data?: boolean;
   validate?: KeywordValidate;
   macro?: KeywordMacro;
   async?: boolean;
@@ -92,6 +94,7 @@ export interface Options {
   unicodeRegExp?: boolean;
   validateFormats?: boolean;
   formats?: Record<string, Format>;
+  $data?: boolean;
   [key: string]: unknown;
 }
 
