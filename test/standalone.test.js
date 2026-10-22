@@ -184,6 +184,153 @@ test("standalone validators suppress messages like ajv's", () => {
   assert.ok(compared > 500);
 });
 
+// A tagged union whose branches reject properties no member allows, so a
+// generated validator must run the selected branch and its report, not the
+// oneOf rule.
+const TAGGED_UNION = {
+  type: "object",
+  discriminator: {propertyName: "kind"},
+  required: ["kind"],
+  oneOf: [
+    {
+      properties: {kind: {const: "a"}, x: {type: "string"}},
+      required: ["kind", "x"],
+      additionalProperties: false,
+    },
+    {
+      properties: {kind: {const: "b"}, y: {type: "number"}},
+      required: ["kind", "y"],
+      additionalProperties: false,
+    },
+  ],
+};
+
+// Every document class the discriminator decides: each member, a tag outside
+// the mapping, a non-string or absent tag, a missing required property, a
+// property no member allows, and values that are not objects.
+const TAGGED_UNION_DOCUMENTS = [
+  {kind: "a", x: "s"},
+  {kind: "b", y: 1},
+  {kind: "c"},
+  {kind: 1},
+  {kind: null},
+  {x: "s"},
+  {kind: "a"},
+  {kind: "a", x: "s", z: 1},
+  {kind: "b", y: 1, z: 2},
+  {kind: "b", y: "no"},
+  {},
+  "nope",
+  null,
+  [1],
+  42,
+];
+
+test("generated validators carry the discriminator option and its reports", () => {
+  const sides = prepareSides();
+  const dialects = [
+    ["draft-07", AjvReference, AjvReplacement],
+    ["2019-09", require("ajv-reference/dist/2019").default, require("../dist/2019")],
+    ["2020-12", require("ajv-reference/dist/2020").default, require("../dist/2020")],
+  ];
+  for (const [dialect, Reference, Replacement] of dialects) {
+    for (const options of [
+      {},
+      {allErrors: true},
+      {verbose: true, allErrors: true},
+      {messages: false, verbose: true, allErrors: true},
+    ]) {
+      const label = `${dialect} ${JSON.stringify(options)}`;
+      const reference = new Reference({
+        strict: false,
+        code: {source: true},
+        discriminator: true,
+        ...options,
+      });
+      const replacement = new Replacement({
+        strict: false,
+        code: {source: true},
+        discriminator: true,
+        ...options,
+      });
+      const generated = generatedPair(sides, {reference, replacement}, TAGGED_UNION);
+      const code = standaloneReplacement(replacement, generated.replacementValidate);
+      assert.ok(
+        !/\brequire\(\s*["'](?!\.)/.test(code),
+        `${label}: generated module must not require an installed package`,
+      );
+      assert.deepStrictEqual(
+        runAll(generated.replacement.module, TAGGED_UNION_DOCUMENTS),
+        runAll(generated.reference.module, TAGGED_UNION_DOCUMENTS),
+        `${label}: generated validators disagree`,
+      );
+      assert.deepStrictEqual(
+        runAll(generated.replacement.module, TAGGED_UNION_DOCUMENTS),
+        runAll(generated.replacementValidate, TAGGED_UNION_DOCUMENTS),
+        `${label}: generated validator disagrees with the instance`,
+      );
+      unload(generated.reference);
+      unload(generated.replacement);
+    }
+  }
+
+  const side = sides.replacement;
+  const ajv = new AjvReplacement({
+    strict: false,
+    code: {source: true},
+    discriminator: true,
+  });
+  const loaded = load(side, standaloneReplacement(ajv, ajv.compile(TAGGED_UNION)));
+  assert.strictEqual(loaded.module({kind: "c"}), false);
+  assert.deepStrictEqual(loaded.module.errors, [
+    {
+      instancePath: "",
+      schemaPath: "#/discriminator",
+      keyword: "discriminator",
+      params: {error: "mapping", tag: "kind", tagValue: "c"},
+      message: 'value of tag "kind" must be in oneOf',
+    },
+  ]);
+  assert.strictEqual(loaded.module({kind: 1}), false);
+  assert.strictEqual(loaded.module.errors[0].params.error, "tag");
+  unload(loaded);
+});
+
+test("generated validators without the annotation keep their reports", () => {
+  const sides = prepareSides();
+  const schema = {
+    type: "object",
+    required: ["kind"],
+    oneOf: [
+      {properties: {kind: {const: "a"}, x: {type: "string"}}, required: ["kind", "x"]},
+      {properties: {kind: {const: "b"}, y: {type: "number"}}, required: ["kind", "y"]},
+    ],
+  };
+  for (const options of [{}, {allErrors: true}, {verbose: true, allErrors: true}]) {
+    const reference = new AjvReference({
+      strict: false,
+      code: {source: true},
+      discriminator: true,
+      ...options,
+    });
+    const replacement = new AjvReplacement({
+      strict: false,
+      code: {source: true},
+      discriminator: true,
+      ...options,
+    });
+    const generated = generatedPair(sides, {reference, replacement}, schema);
+    const label = JSON.stringify(options);
+    assert.deepStrictEqual(
+      runAll(generated.replacement.module, TAGGED_UNION_DOCUMENTS),
+      runAll(generated.reference.module, TAGGED_UNION_DOCUMENTS),
+      `${label}: generated validators disagree`,
+    );
+    unload(generated.reference);
+    unload(generated.replacement);
+  }
+});
+
 test("the generated module is self-contained and needs no build step", () => {
   const side = prepareSides().replacement;
   const ajv = new AjvReplacement({strict: false, code: {source: true}});

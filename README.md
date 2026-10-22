@@ -482,9 +482,15 @@ and validation code unchanged.
   `strict: "log"` reports it, and with strictness off `oneOf` validates
   normally. Schemas and projects that do not use the annotation are unaffected
   whether the option is on or off.
-- Generating a standalone validator for a schema that uses the annotation, and
-  asynchronous validation of such a schema, are outside the covered surface.
-  JSON Type Definition's own discriminator form is unchanged.
+- Generating a standalone validator for a schema that uses the annotation is
+  covered through the draft-07, 2019-09, and 2020-12 entry points. The generated
+  module carries the discriminator keyword, validates only the selected member,
+  and returns ajv's generated validator's verdict and report for every member,
+  out-of-mapping and non-string tags, an absent tag, a member's missing or
+  disallowed property, and documents that are not objects. The match holds
+  under first-error, complete, verbose, and message-free reporting.
+  Asynchronous validation of such a schema remains outside the covered surface,
+  and JSON Type Definition's own discriminator form is unchanged.
 
 ## Custom keywords
 
@@ -833,6 +839,13 @@ const validateDocument = require("./validate");   // no build step
   rule travels as its own source, it must be self-contained: a function that
   closes over values defined outside its body cannot see them in the generated
   module.
+- A schema carrying the discriminator annotation generates a validator that
+  selects its `oneOf` member by tag, when the instance was created with the
+  `discriminator` option. The generated module inlines the keyword definition,
+  so it runs without the package and returns ajv's generated validator's
+  verdict and report through draft-07, 2019-09, and 2020-12 under first-error,
+  complete, verbose, and message-free reporting. Schemas without the annotation
+  generate the same validators as before.
 - A schema compiled with ajv's `$data` option generates a validator that reads
   the referenced locations from the document at run time. Its verdict and
   report match ajv's generated validator under every reporting mode, including
@@ -1185,12 +1198,24 @@ npm run verify  # prints the verdict comparison
   verbose context and message suppression for every document under default,
   complete, verbose, and message-free reporting. It also covers the export
   forms, options that rewrite data, `$async` validators, runtime-helper
-  compatibility, and the unchanged project fixture below.
+  compatibility, tagged unions, and the unchanged project fixtures below.
 - `test/fixtures/standalone-project` contains the unchanged project that
   generates validators with `standaloneCode`, writes them into its own
   codebase, and requires them; it runs through its normal path first with ajv
   and then after this package takes ajv's place, and both runs must print the
   same verdicts and reports.
+- `test/standalone-discriminator.test.js` runs an unchanged project that
+  generates standalone validators for a tagged union through the draft-07,
+  2019-09, and 2020-12 entry points, and for the same members without the
+  annotation. Both runs print every verdict, report, and `errorsText` summary
+  under default, complete, verbose, and message-free reporting for documents
+  selecting each member, carrying a tag outside the mapping or a non-string
+  tag, omitting the tag, omitting a member's required property, carrying a
+  property no member allows, and not being objects. It also loads a generated
+  tagged-union validator in a separate Node.js process where the package
+  cannot resolve.
+- `test/fixtures/standalone-discriminator-project` contains that unchanged
+  project.
 - `test/standalone-data-references.test.js` runs an unchanged project that
   generates standalone validators for a schema reading a numeric limit and the
   required member names from the document, and for a schema reading nothing
