@@ -1,0 +1,13 @@
+{
+  "$id": "https://example.test/profile.json",
+  "type": "object",
+  "properties": {
+    "handle": {"type": "string", "format": "slug"},
+    "age": {"type": "integer", "default": 18},
+    "port": {"type": "integer", "port": 65535},
+    "nickname": {"type": "string", "default": "anonymous"},
+    "note": {"type": "string"}
+  },
+  "required": ["handle"],
+  "additionalProperties": false
+}

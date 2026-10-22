@@ -275,8 +275,14 @@ npm run verify  # prints the verdict comparison
   case through an unchanged project that imports `ajv`, then repoints
   `node_modules/ajv` at this package without editing the project, its schemas,
   or its documents, and requires the same verdict for every case and document.
+- `test/rewrite.test.js` runs an unchanged project that combines registered
+  formats, a registered custom keyword, an asynchronous `$async` schema, and the
+  `coerceTypes`, `useDefaults`, and `removeAdditional` options through both
+  validators, and requires the same verdicts, error reports, and rewritten data.
 - `test/fixtures/benchmark-project` contains the unchanged project used by that
   check; the case list it receives is built from the published corpus.
+- `test/fixtures/rewrite-project` contains the unchanged project that combines
+  formats, a custom keyword, asynchronous validation, and rewriting options.
 - `test/fixtures/existing-project` contains the unchanged project used by that
   check.
 - `test/fixtures/keyword-project` contains the unchanged project that registers

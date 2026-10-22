@@ -175,7 +175,10 @@ function machine() {
 
 function environment(benchOptions) {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-  const dirty = git(["status", "--porcelain"]) !== "";
+  // Only the code the measurement runs counts: the validator and the harness.
+  // Uncommitted fixtures or documentation do not change what was measured.
+  const dirty =
+    git(["status", "--porcelain", "--", "lib", "index.js", "index.mjs", "dist", "package.json", "bench"]).trim() !== "";
   return {
     node: process.versions.node,
     v8: process.versions.v8,
@@ -262,7 +265,7 @@ function report({environment, summary, rows, whole, excluded}) {
   lines.push("|---|--:|--:|--:|--:|");
   for (const row of rows) {
     lines.push(
-      `| ${row.case} | ${row.documents} | ${formatNumber(row.ajv.docsPerSecond)} | ` +
+      `| ${row.case.replace(/\|/g, "\\|")} | ${row.documents} | ${formatNumber(row.ajv.docsPerSecond)} | ` +
         `${formatNumber(row.replacement.docsPerSecond)} | ${formatRatio(row.ratio)} |`,
     );
   }

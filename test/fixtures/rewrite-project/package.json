@@ -1,0 +1,6 @@
+{
+  "name": "rewrite-project",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unchanged project exercising formats, custom keywords, asynchronous validation, and data-rewriting options"
+}

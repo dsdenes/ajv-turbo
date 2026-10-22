@@ -1,0 +1,13 @@
+{
+  "$id": "https://example.test/account.json",
+  "$async": true,
+  "type": "object",
+  "properties": {
+    "handle": {"type": "string", "format": "slug"},
+    "availability": {"type": "string", "format": "available"},
+    "plan": {"type": "string", "enum": ["free", "pro"]},
+    "seats": {"type": "integer", "default": 1}
+  },
+  "required": ["handle", "availability"],
+  "additionalProperties": false
+}
