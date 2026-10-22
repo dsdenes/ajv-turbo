@@ -212,6 +212,7 @@ export interface Options {
   unicodeRegExp?: boolean;
   validateFormats?: boolean;
   formats?: Record<string, Format>;
+  schemas?: readonly unknown[] | Record<string, unknown>;
   keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
   $data?: boolean;
   discriminator?: boolean;
