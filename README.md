@@ -141,8 +141,15 @@ and make the owning rule run when a schema uses them; and `dependencies`, whose
 companions the parent schema must declare. The refusals carry ajv's text, for
 example `keyword "port" value is invalid at path "/metadata": data must be
 uint16`, `parent schema must have dependencies of owned: tenant,role`, or
-`keyword with "post" flag cannot have "type"`. A definition that contributes
-generated validation code or reads a data reference is still refused here.
+`keyword with "post" flag cannot have "type"`.
+
+Generated validation code is supported in the same `code` form the other
+entry points accept, with the same context and helpers. The rule is compiled
+once per schema location and decides the verdict, the report's entries,
+params, and message exactly as ajv's generated rule does, including entries
+reported through `cxt.error`, a declared `error` object, and subschemas
+compiled with `cxt.subschema`. A definition that reads a data reference is
+still refused here, as are asynchronous rules.
 
 `$async` is not part of the dialect (ajv's JSON Type Definition meta-schema
 rejects it), but a schema that carries it compiles with `validateSchema: false`
@@ -783,12 +790,12 @@ meta-schemas, so rule order, placement, value schemas, rewritten values, and
 error reports are identical however the project supplies its definitions.
 
 Out of scope, and not claimed to match ajv: asynchronous keywords defined in
-the generated-code form, the optional declarations described above on
-the JSON Type Definition entry point, the JSON Type Definition parser, standalone
-generation of those declarations (a generated validator carries the validation
-rules and macros it carried before), schema dialects other than draft-07,
-2019-09, 2020-12, and JSON Type Definition, errors raised while compiling an
-invalid keyword definition, and throughput.
+the generated-code form, data references on the JSON Type Definition entry
+point, the JSON Type Definition parser, standalone generation of those
+declarations (a generated validator carries the validation rules and macros it
+carried before), schema dialects other than draft-07, 2019-09, 2020-12, and
+JSON Type Definition, errors raised while compiling an invalid keyword
+definition, and throughput.
 
 ## Asynchronous validation
 
@@ -1154,6 +1161,16 @@ npm run verify  # prints the verdict comparison
   as ajv. The project exercises a string rule, a number rule restricted to its
   type, a generated loop with its own params and messages, a rule with a value
   schema, a declared schema type, and a document-sourced value.
+- `test/jtd-code-keywords.test.js` runs an unchanged project whose custom
+  keywords are defined by generated validation code on the JSON Type Definition
+  entry point, under first-error, complete, verbose, and message-free
+  reporting, and requires the same verdicts, reports, summaries, and
+  compile-time refusals as ajv. The project places the keywords inside
+  `metadata` on records and their properties, declares a string-only rule, an
+  object rule over a record's own metadata, a number rule with its own message
+  and params, a keyword that supplies both generated code and a rule function
+  that would decide the opposite verdict, and a keyword with a value schema,
+  and it compiles schemas the dialect admits and schemas it refuses.
 - `test/jtd.test.js` compiles every JSON Type Definition form — empty schemas,
   each type, enumeration, elements, properties with optional properties and
   additional properties, discriminators with their mappings, dictionaries,
