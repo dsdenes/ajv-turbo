@@ -1,0 +1,7 @@
+{
+  "values": {
+    "metadata": {
+      "union": [{"type": "string"}, {"type": "boolean"}]
+    }
+  }
+}

@@ -1,0 +1,637 @@
+{
+  "definitions": {
+    "schema": {
+      "metadata": {
+        "union": [
+          {
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "ref": {
+                "type": "string"
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "boolean",
+                  "timestamp",
+                  "string",
+                  "float32",
+                  "float64",
+                  "int8",
+                  "uint8",
+                  "int16",
+                  "uint16",
+                  "int32",
+                  "uint32"
+                ]
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "enum": {
+                "elements": {
+                  "type": "string"
+                }
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "elements": {
+                "ref": "schema"
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "properties": {
+                "values": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "optionalProperties": {
+              "optionalProperties": {
+                "values": {
+                  "ref": "schema"
+                }
+              },
+              "additionalProperties": {
+                "type": "boolean"
+              },
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "optionalProperties": {
+                "values": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "optionalProperties": {
+              "additionalProperties": {
+                "type": "boolean"
+              },
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "discriminator": {
+                "type": "string"
+              },
+              "mapping": {
+                "values": {
+                  "metadata": {
+                    "union": [
+                      {
+                        "properties": {
+                          "properties": {
+                            "values": {
+                              "ref": "schema"
+                            }
+                          }
+                        },
+                        "optionalProperties": {
+                          "optionalProperties": {
+                            "values": {
+                              "ref": "schema"
+                            }
+                          },
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "nullable": {
+                            "type": "boolean"
+                          },
+                          "metadata": {
+                            "optionalProperties": {
+                              "union": {
+                                "elements": {
+                                  "ref": "schema"
+                                }
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        }
+                      },
+                      {
+                        "properties": {
+                          "optionalProperties": {
+                            "values": {
+                              "ref": "schema"
+                            }
+                          }
+                        },
+                        "optionalProperties": {
+                          "additionalProperties": {
+                            "type": "boolean"
+                          },
+                          "nullable": {
+                            "type": "boolean"
+                          },
+                          "metadata": {
+                            "optionalProperties": {
+                              "union": {
+                                "elements": {
+                                  "ref": "schema"
+                                }
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          {
+            "properties": {
+              "values": {
+                "ref": "schema"
+              }
+            },
+            "optionalProperties": {
+              "nullable": {
+                "type": "boolean"
+              },
+              "metadata": {
+                "optionalProperties": {
+                  "union": {
+                    "elements": {
+                      "ref": "schema"
+                    }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "union": [
+      {
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "ref": {
+            "type": "string"
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "type": {
+            "enum": [
+              "boolean",
+              "timestamp",
+              "string",
+              "float32",
+              "float64",
+              "int8",
+              "uint8",
+              "int16",
+              "uint16",
+              "int32",
+              "uint32"
+            ]
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "enum": {
+            "elements": {
+              "type": "string"
+            }
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "elements": {
+            "ref": "schema"
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "properties": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        },
+        "optionalProperties": {
+          "optionalProperties": {
+            "values": {
+              "ref": "schema"
+            }
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "optionalProperties": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        },
+        "optionalProperties": {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "discriminator": {
+            "type": "string"
+          },
+          "mapping": {
+            "values": {
+              "metadata": {
+                "union": [
+                  {
+                    "properties": {
+                      "properties": {
+                        "values": {
+                          "ref": "schema"
+                        }
+                      }
+                    },
+                    "optionalProperties": {
+                      "optionalProperties": {
+                        "values": {
+                          "ref": "schema"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "boolean"
+                      },
+                      "nullable": {
+                        "type": "boolean"
+                      },
+                      "metadata": {
+                        "optionalProperties": {
+                          "union": {
+                            "elements": {
+                              "ref": "schema"
+                            }
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "optionalProperties": {
+                        "values": {
+                          "ref": "schema"
+                        }
+                      }
+                    },
+                    "optionalProperties": {
+                      "additionalProperties": {
+                        "type": "boolean"
+                      },
+                      "nullable": {
+                        "type": "boolean"
+                      },
+                      "metadata": {
+                        "optionalProperties": {
+                          "union": {
+                            "elements": {
+                              "ref": "schema"
+                            }
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      },
+      {
+        "properties": {
+          "values": {
+            "ref": "schema"
+          }
+        },
+        "optionalProperties": {
+          "nullable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "optionalProperties": {
+              "union": {
+                "elements": {
+                  "ref": "schema"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "definitions": {
+            "values": {
+              "ref": "schema"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

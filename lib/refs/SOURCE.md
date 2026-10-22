@@ -20,3 +20,10 @@ copied unmodified from the same package. They are registered by the
 `https://json-schema.org/draft/2020-12/schema` and its `meta/*` references
 resolve and validate exactly as they do in ajv. The `dist/refs/` copies mirror
 these files for the package's published `dist/refs/*` imports.
+
+`jtd-schema.json` is the JSON Type Definition meta-schema ajv builds in
+`dist/refs/jtd-schema.js` (ajv-validator/ajv, MIT), written out as JSON. It is
+registered by the `ajv/dist/jtd` entry point under ajv's `JTD-meta-schema`
+identifier and is the schema every JSON Type Definition schema is validated
+against, so malformed schemas are rejected at the same point and with the same
+message as in ajv.

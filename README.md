@@ -1,13 +1,14 @@
 # ajv-compatible JSON Schema validator
 
 A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
-`ajv` API and, for schemas that use ajv's default draft-07 dialect or its
-JSON Schema 2019-09 and 2020-12 dialects, the formats and the custom keywords
-the host project registers, returns the same valid or invalid verdict and the
-same error report as ajv. Schemas marked `$async: true`, asynchronous custom
-validation rules, and asynchronous format rules produce the same settled
-outcomes, reports, and validated data as ajv; schemas that do not request
-asynchronous validation keep validating synchronously and immediately.
+`ajv` API and, for schemas that use ajv's default draft-07 dialect, its JSON
+Schema 2019-09 and 2020-12 dialects, or its JSON Type Definition validator,
+together with the formats and the custom keywords the host project registers,
+returns the same valid or invalid verdict and the same error report as ajv.
+Schemas marked `$async: true`, asynchronous custom validation rules, and
+asynchronous format rules produce the same settled outcomes, reports, and
+validated data as ajv; schemas that do not request asynchronous validation keep
+validating synchronously and immediately.
 
 Entry points mirror ajv's:
 
@@ -16,6 +17,7 @@ Entry points mirror ajv's:
 |`require("ajv")` / `import Ajv from "ajv"`|draft-07 (ajv's default)|
 |`require("ajv/dist/2019")` / `import Ajv2019 from "ajv/dist/2019"`|2019-09|
 |`require("ajv/dist/2020")` / `import Ajv2020 from "ajv/dist/2020"`|2020-12|
+|`require("ajv/dist/jtd")` / `import AjvJTD from "ajv/dist/jtd"`|JSON Type Definition|
 
 
 ## JSON Schema 2019-09
@@ -88,6 +90,40 @@ The options that rewrite a validated document (`coerceTypes`, `useDefaults`,
 `removeAdditional`) and asynchronous validation behave as they do for the other
 dialects. As in ajv, `useDefaults` does not assign defaults from
 `prefixItems`; only object `properties` supply defaults.
+
+## JSON Type Definition
+
+`ajv/dist/jtd` exposes ajv's JSON Type Definition validator under the same class
+and options as ajv's `Ajv` for that dialect. A project that imports that entry
+point keeps its code, schemas, and configuration unchanged.
+
+The whole dialect is implemented: empty schemas, `type` with every JSON Type
+Definition type (including `timestamp` and the ranged integer types), `enum`,
+`elements`, `properties` with `optionalProperties` and `additionalProperties`,
+`discriminator` with its `mapping`, `values`, `ref` with `definitions`,
+`nullable`, and `metadata` (ajv's extension, whose `union` form is a schema in
+its own right). Schemas are validated against ajv's JSON Type Definition
+meta-schema, so a schema ajv accepts compiles here and a schema ajv rejects is
+rejected with the same message, including the compile-time rules ajv applies on
+top of the meta-schema:
+
+- `enum` must have a non-empty array of unique items.
+- `properties` and `optionalProperties` may not share a member.
+- A discriminator tag may not be a member of the mapping's properties, and a
+  mapping member may not be `nullable`.
+- `ref` must name a member of `definitions`; otherwise compilation fails with
+  ajv's `No definition <ref>` error.
+- Keywords outside the dialect are rejected by the meta-schema, and a keyword
+  used in a schema location that forbids it fails with ajv's message, for
+  example `JTD: "type" cannot be used in this schema location`.
+
+Options that affect a JSON Type Definition verdict are honoured:
+`allErrors`, `removeAdditional`, `ownProperties`, `strictNumbers`, `int32range`,
+`timestamp`, `allowDate`, `inlineRefs`, `strict`/`strictSchema`, `meta`,
+`validateSchema`, and `schemaId`. `addSchema`, `getSchema`, `removeSchema`,
+`validate`, `validateSchema`, `errorsText`, and `defaultMeta` behave as they do
+for the other dialects, and registered custom keywords work where ajv's
+meta-schema admits them — inside `metadata`.
 
 ## Covered subset
 
@@ -225,8 +261,9 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
-`$data`), standalone validators, schema dialects other than draft-07, 2019-09,
-and 2020-12 (JSON Type Definition remains later work), errors raised while
+`$data`), standalone validators and the JSON Type Definition serializer and
+parser, the `verbose` and `messages` error options, schema dialects other than
+draft-07, 2019-09, 2020-12, and JSON Type Definition, errors raised while
 compiling an invalid keyword definition, and throughput.
 
 ## Asynchronous validation
@@ -315,7 +352,15 @@ const ajv = new Ajv2020();
 ```
 
 `import Ajv2020 from "ajv/dist/2020"` and `import {Ajv2020} from "ajv/dist/2020"`
-work as well.
+work as well. A project on JSON Type Definition keeps its entry point too:
+
+```js
+const AjvJTD = require("ajv/dist/jtd");
+const ajv = new AjvJTD();
+```
+
+`import AjvJTD from "ajv/dist/jtd"` and `import {Ajv} from "ajv/dist/jtd"` are
+supported as well.
 
 ## Benchmark
 
@@ -412,6 +457,24 @@ npm run verify  # prints the verdict comparison
   same verdicts and printed reports as ajv. The project exercises typed and
   untyped macros, fragments that refer to local and registered schemas, a
   function that reports its own error entries, and keyword removal.
+- `test/jtd.test.js` compiles every JSON Type Definition form — empty schemas,
+  each type, enumeration, elements, properties with optional properties and
+  additional properties, discriminators with their mappings, dictionaries,
+  references to definitions, nullable forms, and metadata — together with
+  schemas that combine forms and reach definitions through recursive `ref`, and
+  requires identical verdicts, error entries, orders, and `errorsText`
+  summaries from ajv's JSON Type Definition validator under default reporting,
+  `allErrors`, and `removeAdditional`. It compares the compile-time rejection of
+  malformed schemas in both `compile` and `validateSchema`, checks the registry
+  behaviour of the `ajv/dist/jtd` entry point, and runs the unchanged JSON Type
+  Definition project fixture through its normal path twice — first with ajv,
+  then after repointing `node_modules/ajv` at this package — requiring identical
+  output.
+- `test/fixtures/jtd-project` contains the unchanged project that imports
+  `ajv/dist/jtd` and validates documents against definitions, discriminators,
+  dictionaries, nested elements, recursive references, and metadata unions,
+  with both first-error and complete reporting, registered schemas, and
+  `ajv.validate`.
 - `test/drop-in.test.js` copies the existing project fixture, runs its normal
   validation path with ajv, repoints `node_modules/ajv` at this package without
   editing the project's code, schemas, or configuration, runs the same path, and
@@ -466,9 +529,12 @@ npm run verify  # prints the verdict comparison
 ## Layout
 
 - `index.js`, `index.mjs`, `index.d.ts` – CommonJS, ESM, and TypeScript entry points.
+- `dist/jtd.js`, `dist/jtd.d.ts` – the published `ajv/dist/jtd` entry point.
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
+- `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,
+  and its error reporting.
 - `lib/compile.js` – reference resolution, verdict evaluation, and error reporting.
 - `lib/fast.js` – verdict-only code generator for the synchronous covered subset.
 - `bench/runner.js` – published benchmark suite comparison and report.

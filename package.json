@@ -29,6 +29,13 @@
       "default": "./dist/2020.js"
     },
     "./dist/2020.js": "./dist/2020.js",
+    "./dist/jtd": {
+      "types": "./dist/jtd.d.ts",
+      "import": "./dist/jtd.js",
+      "require": "./dist/jtd.js",
+      "default": "./dist/jtd.js"
+    },
+    "./dist/jtd.js": "./dist/jtd.js",
     "./lib/*": "./lib/*",
     "./dist/refs/*": "./dist/refs/*",
     "./package.json": "./package.json"
