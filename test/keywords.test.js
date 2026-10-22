@@ -745,6 +745,27 @@ test("a schema fragment keyword is called once with ajv's arguments", () => {
   }
 });
 
+test("an invalid schema fragment is rejected where ajv rejects it", () => {
+  const messages = [];
+  for (const Ajv of [require("ajv-reference"), require("../")]) {
+    const ajv = new Ajv({strict: false});
+    ajv.addKeyword({keyword: "probe", macro: () => ({type: "nonsense"})});
+    assert.throws(() => ajv.compile({probe: true}), (error) => {
+      messages.push(error.message);
+      return /^schema is invalid: /.test(error.message);
+    });
+  }
+  assert.strictEqual(messages[1], messages[0]);
+
+  for (const Ajv of [require("ajv-reference"), require("../")]) {
+    const ajv = new Ajv({strict: false});
+    ajv.addKeyword({keyword: "nothing", macro: () => undefined});
+    assert.throws(() => ajv.compile({nothing: true}), {
+      message: 'keyword "nothing" failed to compile',
+    });
+  }
+});
+
 test("a keyword registered by a schema fragment can be removed", () => {
   for (const Ajv of [require("ajv-reference"), require("../")]) {
     const ajv = new Ajv({strict: false});
