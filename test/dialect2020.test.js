@@ -249,6 +249,9 @@ for (const [mode, options] of [
   ["default", {}],
   ["all errors collected", {allErrors: true}],
   ["rewriting", {coerceTypes: true, useDefaults: true, removeAdditional: "all"}],
+  ["verbose errors", {verbose: true, allErrors: true}],
+  ["message-free errors", {messages: false, allErrors: true}],
+  ["verbose message-free errors", {verbose: true, messages: false, allErrors: true}],
 ]) {
   test(`2020-12 dialect features match ajv (${mode})`, async () => {
     const oracle = configure(AjvReference, options);

@@ -120,10 +120,11 @@ top of the meta-schema:
   used in a schema location that forbids it fails with ajv's message, for
   example `JTD: "type" cannot be used in this schema location`.
 
-Options that affect a JSON Type Definition verdict are honoured:
-`allErrors`, `removeAdditional`, `ownProperties`, `strictNumbers`, `int32range`,
-`timestamp`, `allowDate`, `inlineRefs`, `strict`/`strictSchema`, `meta`,
-`validateSchema`, and `schemaId`. `addSchema`, `getSchema`, `removeSchema`,
+Options that affect a JSON Type Definition verdict or report are honoured:
+`allErrors`, `verbose`, `messages`, `removeAdditional`, `ownProperties`,
+`strictNumbers`, `int32range`, `timestamp`, `allowDate`, `inlineRefs`,
+`strict`/`strictSchema`, `meta`, `validateSchema`, and `schemaId`.
+`addSchema`, `getSchema`, `removeSchema`,
 `validate`, `validateSchema`, `errorsText`, and `defaultMeta` behave as they do
 for the other dialects, and registered custom keywords work where ajv's
 meta-schema admits them — inside `metadata`.
@@ -222,9 +223,9 @@ Boolean schemas and references are supported, including `$id` base changes,
 location-independent anchors, JSON pointers, recursive schemas, and schemas
 registered with `addSchema` (for example the remote schemas used by the published
 benchmark suite). The Ajv options that affect verdicts or error reports are
-honoured: `allErrors`, `strictNumbers`, `unicodeRegExp`, `ownProperties`,
-`coerceTypes`, `useDefaults`, `removeAdditional`, `multipleOfPrecision`,
-`nullable`, `validateFormats`, and `formats`.
+honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
+`ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
+`multipleOfPrecision`, `nullable`, `validateFormats`, and `formats`.
 
 ## Formats
 
@@ -340,10 +341,9 @@ a synchronous schema that uses one with `async keyword in sync schema`.
 
 Out of scope, and not claimed to match ajv: custom keyword forms other than a
 validation rule or a macro (`code`, `compile`, `post`, `before`, `implements`,
-`$data`), the JSON Type Definition parser, the `verbose` and `messages` error
-options, schema dialects other than draft-07, 2019-09, 2020-12, and JSON Type
-Definition, errors raised while compiling an invalid keyword definition, and
-throughput.
+`$data`), the JSON Type Definition parser, schema dialects other than draft-07,
+2019-09, 2020-12, and JSON Type Definition, errors raised while compiling an
+invalid keyword definition, and throughput.
 
 ## Asynchronous validation
 
@@ -395,6 +395,16 @@ supports:
 - `errorsText(errors, {separator, dataVar})` derives the same summary ajv
   derives from the same report, and returns `"No errors"` when there are none.
 - `validate.errors` is `null` for valid data, exactly as ajv leaves it.
+- With `verbose: true`, every entry also carries ajv's `schema` (the keyword's
+  schema value), `parentSchema` (the schema object that contains it), and `data`
+  (the value at the entry's location), with the same values and on the same
+  entries as ajv. Entries a custom rule supplies through its `errors` property
+  or a rejected `ValidationError` gain `schema` and `data` but no
+  `parentSchema`, exactly as ajv extends them.
+- With `messages: false`, entries generated from schema keywords omit
+  `message`; every other property is unchanged. Entries a custom rule supplies
+  keep their own `message`, as they do in ajv. `errorsText` derives the same
+  summary ajv derives from the message-free report.
 
 ## Standalone validators
 
@@ -426,9 +436,10 @@ const validateDocument = require("./validate");   // no build step
   conditionals, and the draft-07 keywords.
 - The options the validator was compiled with are baked into the generated
   module, as they are in ajv's generated code. `allErrors` selects complete
-  reporting; `coerceTypes`, `useDefaults`, and `removeAdditional` rewrite the
-  document through the generated validator exactly as they do through a
-  directly compiled one.
+  reporting; `verbose` and `messages` select the same extended context and
+  message suppression as a directly compiled validator; `coerceTypes`,
+  `useDefaults`, and `removeAdditional` rewrite the document through the
+  generated validator exactly as they do through a directly compiled one.
 - A `$async` schema generates an asynchronous validator that resolves with the
   validated document and rejects with an error carrying `errors`, matching
   ajv's generated asynchronous validators. Standalone generation for other
@@ -534,9 +545,16 @@ npm run verify  # prints the verdict comparison
   this package and requires identical verdicts.
 - `test/errors.test.js` does the same for error reports: it requires identical
   verdicts, entries in the same order with the same locations and reasons, and
-  identical `errorsText` summaries under default options, `allErrors: true`, and
-  each option that rewrites data (`coerceTypes`, `useDefaults`,
-  `removeAdditional`).
+  identical `errorsText` summaries under default options, `allErrors: true`,
+  `verbose`, `messages: false`, their combination, and each option that
+  rewrites data (`coerceTypes`, `useDefaults`, `removeAdditional`).
+- `test/reports.test.js` runs an unchanged project that imports `ajv`,
+  `ajv/dist/2019`, `ajv/dist/2020`, `ajv/dist/jtd`, and `ajv/dist/standalone`
+  and configures verbose and message-free reporting for built-in validation,
+  custom rules, macros, asynchronous rules, and generated validators. The
+  project runs first with ajv and then with this package in ajv's place; every
+  printed report and `errorsText` summary must match.
+- `test/fixtures/report-options-project` contains that unchanged project.
 - `test/conformance2019.test.js` runs the complete published JSON Schema
   2019-09 conformance corpus through `ajv/dist/2019` and this package's
   `dist/2019` entry, and requires identical verdicts for every case and
@@ -550,7 +568,8 @@ npm run verify  # prints the verdict comparison
   tuple `prefixItems` and schema-valued `items`, dynamic anchors and dynamic
   references, dependent requirements and dependent schemas, bounded contains,
   evaluated property and item tracking, and annotations that do not affect a
-  verdict, plus rewriting options and asynchronous validation. It also compares
+  verdict, plus rewriting, verbose, and message-free options and asynchronous
+  validation. It also compares
   the compile-time rejection of malformed 2020-12 schemas and runs the unchanged
   2020-12 project fixture through its normal path twice — first with ajv, then
   after repointing `node_modules/ajv` at this package — and requires identical
@@ -558,7 +577,8 @@ npm run verify  # prints the verdict comparison
 - `test/dialect2019.test.js` validates documents through recursive references,
   anchors, dependent requirements, bounded contains, and unevaluated properties
   and items, combined with references and applicators, plus registered formats,
-  custom keywords, and asynchronous validation. It also runs the unchanged
+  custom keywords, asynchronous validation, and verbose and message-free
+  reporting. It also runs the unchanged
   2019-09 project fixture through its normal path twice — first with ajv, then
   after repointing `node_modules/ajv` at this package — and requires identical
   verdicts, reports, and rewritten documents.
@@ -571,8 +591,8 @@ npm run verify  # prints the verdict comparison
   registered schemas, with `errors: true`, `modifying`, and `schema: false` — and
   with both definition forms: validation functions and macros whose returned
   schema stands in for the keyword. It requires identical verdicts, error
-  reports, summaries, keyword arguments, and validated data under five option
-  combinations. It also runs the project fixture through its normal validation
+  reports, summaries, keyword arguments, and validated data under eight option
+  combinations, including verbose and message-free reporting. It also runs the project fixture through its normal validation
   path with ajv, substitutes this package for ajv without editing the project,
   and requires identical output.
 - `test/keyword-forms.test.js` runs an unchanged project that defines custom
@@ -588,7 +608,8 @@ npm run verify  # prints the verdict comparison
   schemas that combine forms and reach definitions through recursive `ref`, and
   requires identical verdicts, error entries, orders, and `errorsText`
   summaries from ajv's JSON Type Definition validator under default reporting,
-  `allErrors`, and `removeAdditional`. It compares the compile-time rejection of
+  `allErrors`, `verbose`, `messages: false`, and `removeAdditional`. It compares
+  the compile-time rejection of
   malformed schemas in both `compile` and `validateSchema`, checks the registry
   behaviour of the `ajv/dist/jtd` entry point, and runs the unchanged JSON Type
   Definition project fixture through its normal path twice — first with ajv,
@@ -638,8 +659,8 @@ npm run verify  # prints the verdict comparison
 - `test/async.test.js` requires identical settled outcomes, error entries,
   reports, and validated data for `$async` schemas, asynchronous custom keywords
   (typed, untyped, `errors: true`, `errors: false`, `modifying`, `schema: false`,
-  and rule rejections), asynchronous formats, references, and both reporting
-  modes. It also requires synchronous validators to keep returning immediately,
+  and rule rejections), asynchronous formats, references, and verbose and
+  message-free reporting modes. It also requires synchronous validators to keep returning immediately,
   and it repeats the drop-in substitution for three unchanged projects that
   validate asynchronously:
   `test/fixtures/async-project` (schemas marked `$async`, including a
@@ -680,8 +701,9 @@ npm run verify  # prints the verdict comparison
 - `test/standalone.test.js` generates standalone validators from ajv and from
   this package for the covered draft-07 corpus and the benchmark schemas,
   loads both in a plain Node.js program, and requires the same verdict, the
-  same first error, and the same complete report in the same order for every
-  document under default and complete reporting. It also covers the export
+  same first error, the same complete report in the same order, and the same
+  verbose context and message suppression for every document under default,
+  complete, verbose, and message-free reporting. It also covers the export
   forms, options that rewrite data, `$async` validators, runtime-helper
   compatibility, and the unchanged project fixture below.
 - `test/fixtures/standalone-project` contains the unchanged project that

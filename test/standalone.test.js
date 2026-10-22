@@ -166,6 +166,19 @@ test("standalone validators report the same complete report as ajv's", () => {
   assert.ok(compared > 500);
 });
 
+test("standalone validators report the same verbose context as ajv's", () => {
+  const {compared} = compareGenerated({verbose: true, allErrors: true}, "verbose reporting");
+  assert.ok(compared > 500);
+});
+
+test("standalone validators suppress messages like ajv's", () => {
+  const {compared} = compareGenerated(
+    {verbose: true, messages: false, allErrors: true},
+    "verbose message-free reporting",
+  );
+  assert.ok(compared > 500);
+});
+
 test("the generated module is self-contained and needs no build step", () => {
   const side = prepareSides().replacement;
   const ajv = new AjvReplacement({strict: false, code: {source: true}});

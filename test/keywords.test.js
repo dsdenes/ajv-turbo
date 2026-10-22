@@ -16,6 +16,9 @@ const CONFIGURATIONS = [
   {name: "types coerced", opts: {coerceTypes: true}},
   {name: "all errors collected with coercion", opts: {allErrors: true, coerceTypes: true}},
   {name: "formats disabled", opts: {allErrors: true, validateFormats: false}},
+  {name: "verbose errors", opts: {verbose: true, allErrors: true}},
+  {name: "message-free errors", opts: {messages: false, allErrors: true}},
+  {name: "verbose message-free errors", opts: {verbose: true, messages: false, allErrors: true}},
 ];
 
 const slug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
