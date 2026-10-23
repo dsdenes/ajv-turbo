@@ -115,7 +115,8 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `validateFormats: false`, and the unmodified `ajv-formats` plugin, including
   its range keywords and fast mode.
 - **Custom keywords:** `validate`, `compile`, `macro`, and generated `code`
-  forms; `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
+  forms, including generated code that awaits inside a `$async` schema;
+  `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
   `passContext`, `getKeyword`, `removeKeyword`, constructor `keywords`, and
   `addVocabulary`. The unmodified `ajv-keywords` plugin runs.
 - **Strict mode:** the same accept/refuse decisions and messages for unknown
@@ -139,9 +140,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   names and kinds, including the code-generation helpers, the runtime helpers
   generated validators require, and the bundled meta-schema modules.
 
-Not covered: asynchronous keywords written in the code form, `$data` on the
-JSON Type Definition entry point, standalone parser/serializer modules, and
-dialects other than draft-06/07, 2019-09, 2020-12, and JSON Type Definition.
+Not covered: `$data` on the JSON Type Definition entry point, standalone
+parser/serializer modules, and dialects other than draft-06/07, 2019-09,
+2020-12, and JSON Type Definition.
 
 ## Verification
 

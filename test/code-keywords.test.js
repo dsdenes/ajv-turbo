@@ -86,5 +86,39 @@ for (const dialect of ["draft7", "2019", "2020"]) {
     const logged = byCase.get("logged value compiled");
     assert.strictEqual(logged.error, null);
     assert.strictEqual(logged.valid, true);
+
+    // A generated-code rule that awaits settles with ajv's outcome, report,
+    // and error order, and a rule that waits on nothing keeps its synchronous
+    // behaviour inside an asynchronous schema.
+    const row = (name) => {
+      const found = byCase.get(name);
+      assert.ok(found, `missing case "${name}"`);
+      return found;
+    };
+    assert.strictEqual(row("all errors async rule valid").settled, "valid");
+    assert.deepStrictEqual(row("all errors async rule valid").out, {value: "abcd"});
+    assert.strictEqual(row("all errors async rule fails").settled, "invalid");
+    assert.strictEqual(row("all errors async rule fails").errors[0].keyword, "asyncStartsWith");
+    assert.strictEqual(
+      row("all errors async rule fails").errors[0].schemaPath,
+      "#/properties/value/asyncStartsWith",
+    );
+    assert.deepStrictEqual(row("all errors async rule fails").errors[0].params, {prefix: "ab"});
+    assert.strictEqual(row("first error async rule fails").errors.length, 1);
+    assert.deepStrictEqual(
+      row("all errors async rule second both fail").errors.map((error) => error.keyword),
+      ["minLength", "asyncWords"],
+    );
+    assert.strictEqual(row("all errors async rule wrong type").settled, "invalid");
+    assert.strictEqual(row("all errors async rule wrong type").errors[0].keyword, "type");
+    assert.strictEqual(row("all errors async schema sync rule valid").settled, "valid");
+    assert.strictEqual(row("all errors async schema sync rule fails").settled, "invalid");
+    assert.strictEqual(row("all errors async inlined reference fails").settled, "invalid");
+    assert.strictEqual(
+      row("all errors async inlined reference fails").errors[0].schemaPath,
+      "http://example.com/code-keywords/inner/asyncStartsWith",
+    );
+    assert.deepStrictEqual(row("all errors async rewritten valid").document, {value: "padded"});
+    assert.match(row("first error sync schema async rule").error, /^await is only valid/);
   });
 }
