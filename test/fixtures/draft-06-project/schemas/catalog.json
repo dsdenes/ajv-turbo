@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "https://example.test/draft-06/catalog.json",
+  "title": "Catalog entry",
+  "type": "object",
+  "required": ["id", "kind", "price"],
+  "additionalProperties": false,
+  "propertyNames": {"pattern": "^[A-Za-z]+$"},
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z]{2}-[0-9]+$"},
+    "kind": {"enum": ["book", "music", "film"]},
+    "price": {"type": "number", "exclusiveMinimum": 0, "multipleOf": 0.5},
+    "released": {"type": "integer", "minimum": 1900},
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true,
+      "contains": {"const": "featured"}
+    },
+    "dimensions": {
+      "type": ["object", "null"],
+      "required": ["width", "height"],
+      "properties": {
+        "width": {"type": "number"},
+        "height": {"type": "number"}
+      }
+    },
+    "isbn": {"type": "string"},
+    "tracks": {
+      "type": "array",
+      "items": [{"type": "string", "minLength": 1}],
+      "additionalItems": false,
+      "minItems": 1,
+      "maxItems": 1
+    }
+  },
+  "dependencies": {
+    "isbn": ["kind"],
+    "dimensions": {"properties": {"kind": {"const": "film"}}}
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "plan": "team",
+  "seats": 5,
+  "features": ["sso", "extra"],
+  "owner": {"ann": "x"},
+  "addons": ["backup"]
+}

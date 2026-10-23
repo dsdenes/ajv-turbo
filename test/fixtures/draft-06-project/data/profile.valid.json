@@ -1,0 +1,6 @@
+{
+  "name": "Ada",
+  "contact": {"email": "ada@example.test"},
+  "limits": {"daily": 50},
+  "flags": "a"
+}

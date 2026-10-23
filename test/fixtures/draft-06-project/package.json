@@ -1,0 +1,13 @@
+{
+  "name": "draft-06-catalog-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing Node.js service that validates JSON Schema draft-06 documents with ajv",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}
