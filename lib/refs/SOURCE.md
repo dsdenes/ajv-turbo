@@ -5,6 +5,13 @@ package (ajv-validator/ajv, MIT). It is registered as the default meta-schema so
 that `$ref` targets such as `http://json-schema.org/draft-07/schema#` resolve and
 validate exactly as they do in ajv.
 
+`json-schema-draft-06.json` is the draft-06 meta-schema shipped by the same
+package. It is published at `dist/refs/json-schema-draft-06.json`, the path
+ajv's documentation tells a project to load and register with
+`addMetaSchema`, and `dist/refs/` mirrors it for the package's published
+`dist/refs/*` imports. Like ajv, the default entry point does not register it;
+a project enables draft-06 by adding it.
+
 `json-schema-2019-09/` contains the 2019-09 meta-schema and its vocabulary
 meta-schemas (`meta/core`, `meta/applicator`, `meta/validation`,
 `meta/meta-data`, `meta/format`, `meta/content`), copied unmodified from the

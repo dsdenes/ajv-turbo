@@ -1,0 +1,9 @@
+{
+  "id": "fl-12",
+  "kind": "film",
+  "price": 9.5,
+  "released": 1999,
+  "tags": ["featured", "sale"],
+  "dimensions": {"width": 2, "height": 3},
+  "tracks": ["intro"]
+}

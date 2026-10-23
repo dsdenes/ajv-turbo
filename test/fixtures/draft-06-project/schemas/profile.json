@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "https://example.test/draft-06/profile.json",
+  "definitions": {
+    "name": {"type": "string", "minLength": 2, "maxLength": 40},
+    "contact": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["email"],
+          "properties": {"email": {"type": "string", "minLength": 3}}
+        },
+        {
+          "type": "object",
+          "required": ["phone"],
+          "properties": {"phone": {"type": "string", "pattern": "^\\+[0-9]+$"}}
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["name", "contact"],
+  "properties": {
+    "name": {"$ref": "#/definitions/name"},
+    "contact": {"$ref": "#/definitions/contact"},
+    "limits": {
+      "type": "object",
+      "properties": {
+        "daily": {"type": "integer", "exclusiveMinimum": 0, "exclusiveMaximum": 100}
+      }
+    },
+    "flags": {
+      "anyOf": [{"const": "a"}, {"const": "b"}],
+      "not": {"const": "c"}
+    }
+  }
+}

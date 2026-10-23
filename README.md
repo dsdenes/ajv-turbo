@@ -24,6 +24,27 @@ Entry points mirror ajv's:
 |`require("ajv/dist/jtd")` / `import AjvJTD from "ajv/dist/jtd"`|JSON Type Definition|
 
 
+## JSON Schema draft-06
+
+Draft-06 schemas validate through the default entry point exactly the way ajv
+documents it: register the draft-06 meta-schema published with the package
+before compiling them.
+
+```javascript
+const Ajv = require("ajv")
+const draft6MetaSchema = require("ajv/dist/refs/json-schema-draft-06.json")
+
+const ajv = new Ajv()
+ajv.addMetaSchema(draft6MetaSchema)
+```
+
+The keywords below are available to draft-06 schemas as they are in ajv, and a
+schema whose `$schema` names `http://json-schema.org/draft-06/schema#` is
+validated against that meta-schema. A draft-06 schema ajv accepts compiles, one
+ajv refuses is refused with the same message, and its documents receive the
+same verdict, error entries, and `errorsText` summary. As in ajv, the
+meta-schema is not registered unless the project adds it.
+
 ## JSON Schema 2019-09
 
 `ajv/dist/2019` exposes the 2019-09 dialect under the same class and options as

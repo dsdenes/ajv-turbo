@@ -1,0 +1,7 @@
+{
+  "plan": "solo",
+  "seats": 0,
+  "features": ["x"],
+  "owner": {"Ann": 1},
+  "addons": ["backup", "extra"]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "XX",
+  "kind": "book",
+  "price": 0,
+  "released": "old",
+  "tags": ["a", "a"],
+  "isbn": "123",
+  "dimensions": {"width": 1},
+  "tracks": ["ok", "bad"],
+  "Extra": true
+}
