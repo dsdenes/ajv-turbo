@@ -21,6 +21,21 @@ import type * as ReplStandaloneModule from "ajv/dist/standalone";
 import type * as RealStandaloneModule from "ajv-reference/dist/standalone";
 import type * as ReplStandaloneIndexModule from "ajv/dist/standalone/index";
 import type ReplPack from "ajv/dist/standalone/instance";
+import type ReplCoreDefault from "ajv/dist/core";
+import type * as ReplCore from "ajv/dist/core";
+import type * as RealCore from "ajv-reference/dist/core";
+import type * as ReplCodegenCodeModule from "ajv/dist/compile/codegen/code";
+import type * as RealCodegenCodeModule from "ajv-reference/dist/compile/codegen/code";
+import type * as ReplCodegenIndexModule from "ajv/dist/compile/codegen/index";
+import type * as RealCodegenIndexModule from "ajv-reference/dist/compile/codegen/index";
+import type * as ReplCodegenScopeModule from "ajv/dist/compile/codegen/scope";
+import type * as RealCodegenScopeModule from "ajv-reference/dist/compile/codegen/scope";
+import type * as ReplTypes from "ajv/dist/types";
+import type * as RealTypes from "ajv-reference/dist/types";
+import type * as ReplTypesJsonSchema from "ajv/dist/types/json-schema";
+import type * as RealTypesJsonSchema from "ajv-reference/dist/types/json-schema";
+import type * as ReplTypesJtd from "ajv/dist/types/jtd-schema";
+import type * as RealTypesJtd from "ajv-reference/dist/types/jtd-schema";
 import type {
   Block,
   Code as ReplCodegenCode,
@@ -205,6 +220,104 @@ type JtdExports = [
 declare const jtdExports: JtdExports;
 void jtdExports;
 
+// The remaining published entry points: core, the codegen modules, and the
+// type modules.
+declare const replCoreSchema: ReplCore.JSONSchemaType<Data>;
+const realCoreSchema: RealCore.JSONSchemaType<Data> = replCoreSchema;
+declare const replCoreJtdSchema: ReplCore.JTDSchemaType<JtdData>;
+void replCoreJtdSchema;
+declare const replCoreOptions: ReplCore.Options;
+void replCoreOptions;
+declare const replCoreInstance: ReplCoreDefault;
+const replCoreBase: Repl.Ajv = replCoreInstance;
+void replCoreBase;
+
+declare const replCodeName: ReplCodegenCodeModule.Name;
+const replCodeNameText: string = replCodeName.str;
+void replCodeNameText;
+declare const replCodeExpression: ReplCodegenCodeModule._Code;
+const replCodeExpressionText: string = replCodeExpression.str;
+void replCodeExpressionText;
+declare const replCodeUnion: ReplCodegenCodeModule.Code;
+void replCodeUnion;
+declare const replCodeItem: ReplCodegenCodeModule.CodeItem;
+void replCodeItem;
+declare const replUsedNames: ReplCodegenCodeModule.UsedNames;
+void replUsedNames;
+declare const replCodeNil: typeof ReplCodegenCodeModule.nil;
+void replCodeNil;
+declare const replCodeSafeExpr: ReplCodegenCodeModule.SafeExpr;
+void replCodeSafeExpr;
+declare const replCodeStringify: typeof ReplCodegenCodeModule.stringify;
+void replCodeStringify;
+
+declare const replIndexCodeGen: ReplCodegenIndexModule.CodeGen;
+void replIndexCodeGen;
+declare const replIndexScope: ReplCodegenIndexModule.Scope;
+void replIndexScope;
+declare const replIndexValueScope: ReplCodegenIndexModule.ValueScope;
+void replIndexValueScope;
+declare const replIndexRegexpCode: typeof ReplCodegenIndexModule.regexpCode;
+void replIndexRegexpCode;
+declare const replIndexVarKinds: typeof ReplCodegenIndexModule.varKinds;
+void replIndexVarKinds;
+
+declare const replScopeClass: ReplCodegenScopeModule.Scope;
+void replScopeClass;
+declare const replValueScopeClass: ReplCodegenScopeModule.ValueScope;
+void replValueScopeClass;
+declare const replScopedName: ReplCodegenScopeModule.ValueScopeName;
+void replScopedName;
+declare const replNameValue: ReplCodegenScopeModule.NameValue;
+void replNameValue;
+declare const replValueReference: ReplCodegenScopeModule.ValueReference;
+void replValueReference;
+declare const replScopeStore: ReplCodegenScopeModule.ScopeStore;
+void replScopeStore;
+declare const replScopeSets: ReplCodegenScopeModule.ScopeValueSets;
+void replScopeSets;
+declare const replUsedState: ReplCodegenScopeModule.UsedValueState;
+void replUsedState;
+declare const replUsedValues: ReplCodegenScopeModule.UsedScopeValues;
+void replUsedValues;
+declare const replScopeVarKinds: typeof ReplCodegenScopeModule.varKinds;
+void replScopeVarKinds;
+
+declare const replTypeValidate: ReplTypes.ValidateFunction<Data>;
+void replTypeValidate;
+declare const replTypeSchema: ReplTypes.Schema;
+void replTypeSchema;
+declare const replTypeError: ReplTypes.ErrorObject;
+void replTypeError;
+declare const replTypeKeyword: ReplTypes.KeywordDefinition;
+void replTypeKeyword;
+declare const replTypeFormat: ReplTypes.Format;
+void replTypeFormat;
+declare const replTypeSource: ReplTypes.SourceCode;
+void replTypeSource;
+declare const replTypeEvaluated: ReplTypes.Evaluated;
+void replTypeEvaluated;
+declare const replTypeParser: ReplTypes.JTDParser<JtdData>;
+void replTypeParser;
+
+declare const replJsonSchema: ReplTypesJsonSchema.JSONSchemaType<Data>;
+const realJsonSchema: RealTypesJsonSchema.JSONSchemaType<Data> = replJsonSchema;
+declare const replSomeJsonSchema: ReplTypesJsonSchema.SomeJSONSchema;
+void replSomeJsonSchema;
+declare const replPartialJsonSchema: ReplTypesJsonSchema.PartialSchema<Data>;
+void replPartialJsonSchema;
+declare const replPropertiesSchema: ReplTypesJsonSchema.PropertiesSchema<Data>;
+void replPropertiesSchema;
+declare const replRequiredMembers: ReplTypesJsonSchema.RequiredMembers<Data>;
+void replRequiredMembers;
+
+declare const replJtdTypesSchema: ReplTypesJtd.JTDSchemaType<JtdData>;
+const realJtdTypesSchema: RealTypesJtd.JTDSchemaType<JtdData> = replJtdTypesSchema;
+declare const replSomeJtdTypesSchema: ReplTypesJtd.SomeJTDSchemaType;
+void replSomeJtdTypesSchema;
+declare const replJtdTypesData: ReplTypesJtd.JTDDataType<{properties: {id: {type: "int32"}}}>;
+void replJtdTypesData;
+
 // 2. Cross-package assignability for shapes that do not depend on ajv's
 // internal classes.
 
@@ -381,7 +494,7 @@ declare const replSafeExpr: SafeExpr;
 declare const replBlock: Block;
 declare const replValueScope: ValueScope;
 declare const replScope: Scope;
-declare const replScopeStore: ScopeStore;
+declare const replScopeStoreValue: ScopeStore;
 declare const replValueScopeName: ValueScopeName;
 declare const replScopeValueSets: ScopeValueSets;
 declare const replCodegenCode: ReplCodegenCode;
@@ -392,7 +505,7 @@ void replSafeExpr;
 void replBlock;
 void replValueScope;
 void replScope;
-void replScopeStore;
+void replScopeStoreValue;
 void replValueScopeName;
 void replScopeValueSets;
 void replCodegenCode;
