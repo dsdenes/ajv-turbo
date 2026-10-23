@@ -1,0 +1,8 @@
+{
+  "name": "alpha",
+  "count": 12,
+  "tags": ["a", "b"],
+  "stamp": {"at": "2020-01-01T00:00:00Z", "zone": "utc"},
+  "labels": {"site": "north"},
+  "note": null
+}

@@ -8,7 +8,9 @@ host project uses, returns the same valid or invalid verdict and the same error
 report as ajv.
 JSON Type Definition schemas also produce the same JSON text through the
 serializer and read JSON text at the parser's offsets, reporting the parser's
-messages and positions.
+messages and positions. Standalone validators — including those generated for
+JSON Type Definition schemas — carry everything they need and keep the same
+verdicts and reports without the package installed.
 Schemas marked `$async: true`, asynchronous custom validation rules, and
 asynchronous format rules produce the same settled outcomes, reports, and
 validated data as ajv; schemas that do not request asynchronous validation keep
@@ -178,6 +180,24 @@ and settles through a promise exactly as ajv's does: it resolves with the
 validated document and rejects with a `ValidationError` carrying the report. A
 synchronous schema that contains an asynchronous subschema is rejected at
 compile time with ajv's message.
+
+A validator compiled on this entry point generates a standalone module through
+`ajv/dist/standalone` like any other: `standaloneCode(ajv, validate)` exports
+one validator, a map from export name to a registered key exports one validator
+per entry, and calling it with no second argument exports every schema
+registered on the instance (the meta-schema excluded). The generated module
+carries the dialect compiler, so it compiles and validates without the package.
+Every form generates the same verdict, first error, complete report in the same
+order, summary text, and rewritten document as ajv's generated validator,
+including the ranged types and timestamps, enumerations, arrays, records,
+dictionaries, discriminators, nullable forms, and recursive references, under
+first-error and complete reporting, with and without messages, with verbose
+context, and with `removeAdditional`. The options that affect a JSON Type
+Definition verdict or report (`allErrors`, `verbose`, `messages`,
+`removeAdditional`, `ownProperties`, `strictNumbers`, `int32range`,
+`timestamp`, `allowDate`, `inlineRefs`, `strictSchema`, and `passContext`) are
+baked into the generated module, and custom keyword definitions registered on
+the instance travel with it as source.
 
 `compileSerializer(schema)` returns the function that turns a value into JSON
 text, with ajv's text for the same schema and value:
@@ -843,11 +863,10 @@ error reports are identical however the project supplies its definitions.
 
 Out of scope, and not claimed to match ajv: asynchronous keywords defined in
 the generated-code form, data references on the JSON Type Definition entry
-point, the JSON Type Definition parser, standalone generation of those
-declarations (a generated validator carries the validation rules and macros it
-carried before), schema dialects other than draft-07, 2019-09, 2020-12, and
-JSON Type Definition, errors raised while compiling an invalid keyword
-definition, and throughput.
+point, standalone outputs for the JSON Type Definition parser and serializer,
+schema dialects other than draft-07, 2019-09, 2020-12, and JSON Type
+Definition, errors raised while compiling an invalid keyword definition, and
+throughput.
 
 ## Asynchronous validation
 
@@ -976,11 +995,20 @@ const validateDocument = require("./validate");   // no build step
   documents where the location is absent or holds a value of the wrong type. A
   `format` named by the document resolves from the `code.formats` expression at
   load time, as it does in ajv's generated module.
+- A schema compiled on the JSON Type Definition entry point generates the same
+  way. The generated module carries the dialect compiler, so it validates
+  without the package, and matches ajv's generated JSON Type Definition
+  validator for every form: the same verdict, error entries, order, locations,
+  reasons, summary text, and rewritten document under default, complete,
+  verbose, message-free, and `removeAdditional` reporting. The same export forms
+  apply, with the JSON Type Definition meta-schema excluded from the
+  all-registered export.
 - `ajv/dist/standalone/instance` provides ajv's `AjvPack` wrapper, which
   generates and evaluates each compiled validator in memory.
-- `dist/runtime/ucs2length`, `dist/runtime/equal`, and
-  `dist/runtime/validation_error` mirror the runtime helpers ajv's generated
-  modules require, so a validator that ajv generated keeps running after this
+- `dist/runtime/ucs2length`, `dist/runtime/equal`, `dist/runtime/timestamp`,
+  and `dist/runtime/validation_error` mirror the runtime helpers ajv's
+  generated modules require, so a validator that ajv generated — including a
+  JSON Type Definition validator over timestamps — keeps running after this
   package takes ajv's place.
 
 ## Drop-in use
@@ -1264,6 +1292,27 @@ npm run verify  # prints the verdict comparison
   dictionaries, nested elements, recursive references, and metadata unions,
   with both first-error and complete reporting, registered schemas, and
   `ajv.validate`.
+- `test/jtd-standalone.test.js` generates standalone JSON Type Definition
+  validators from ajv and from this package for a corpus covering every form —
+  empty and metadata-only schemas, each scalar type including the ranged
+  integer types and timestamps, enumerations, arrays, records with required,
+  optional, and additional members, dictionaries, discriminators, nullable
+  forms, and recursive definitions reached by reference — and loads both in a
+  plain Node.js program. For every document it requires the same verdict, the
+  same error entries in the same order with the same locations and reasons,
+  the same summary text, and the same rewritten document under first-error and
+  complete reporting, with and without messages, with verbose context, and
+  with `removeAdditional`, `ownProperties`, `int32range: false`, `allowDate`,
+  and both timestamp modes. It also covers the export forms, the meta-schema
+  exclusion, and a generated validator loaded in a separate Node.js process
+  whose resolution cannot reach any validator package.
+- `test/fixtures/jtd-standalone-project` contains the unchanged project that
+  imports `ajv/dist/jtd` and `ajv/dist/standalone`, generates a validator for
+  each registered JSON Type Definition schema, writes the modules into its own
+  codebase, and requires them during its normal work with first-error,
+  complete, and name-map reporting. It runs through its normal path first with
+  ajv and then after this package takes ajv's place, and both runs must print
+  the same verdicts and reports.
 - `test/fixtures/jtd-serializer-project` contains the unchanged project that
   imports `ajv/dist/jtd` and turns telemetry values into JSON text with
   `compileSerializer`, covering empty schemas, types and timestamps (including
@@ -1385,6 +1434,9 @@ npm run verify  # prints the verdict comparison
 - `lib/ajv.js` – Ajv-compatible class and schema registry.
 - `lib/standalone.js` – standalone module generation, and
   `lib/standalone-runtime.js` – the runtime embedded in generated modules.
+- `lib/jtd-standalone-runtime.js` – the runtime embedded in generated JSON
+  Type Definition modules, which compiles the schema with the inlined
+  `lib/jtd.js` compiler.
 - `lib/ajv2019.js` – the `ajv/dist/2019` class and its dialect switches.
 - `lib/ajv2020.js` – the `ajv/dist/2020` class and its dialect switches.
 - `lib/jtd.js` – the `ajv/dist/jtd` class, the JSON Type Definition compiler,

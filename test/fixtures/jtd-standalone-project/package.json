@@ -1,0 +1,13 @@
+{
+  "name": "standalone-telemetry-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing service that generates standalone JSON Type Definition validators and loads them",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}
