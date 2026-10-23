@@ -297,6 +297,31 @@ refuses at construction — repeated identifiers, or a member its meta-schema
 rejects — is refused here with the same message, and construction yields no
 validator.
 
+A project's schema-registration configuration is honoured as ajv applies it:
+
+- `meta` registers the dialect's meta-schema by default. `meta: false` leaves
+  the instance without one: `defaultMeta()` answers nothing, the dialect's
+  meta-schema identifier resolves to nothing, schemas are no longer checked
+  against it, and each check reports `meta-schema not available` through the
+  logger. An object is registered as a meta-schema after the keywords and
+  becomes the default for schemas without a `$schema`, so it decides which
+  schemas compile and is available through `getSchema` by its identifier.
+- `defaultMeta` names the meta-schema used for schemas without `$schema`.
+  `addMetaSchema(schema, key, validate)` registers a meta-schema, validating it
+  against the current default unless the third argument is `false`.
+- `addUsedSchema: false` stops `compile` and `validate` from registering a
+  schema by its identifier: the identifier does not resolve afterwards, and a
+  second schema may carry the same identifier. `addSchema` still registers
+  explicitly.
+- `schemaId: "id"` reads schema identity from the legacy `id` property instead
+  of `$id` on every entry point, for registration, `getSchema`, and `$ref`
+  resolution. `$id` then stays an ordinary keyword, so it neither registers a
+  schema nor makes an identifier unique. The default remains `$id`.
+
+These settings cover the draft-07, 2019-09, and 2020-12 entry points. JSON Type
+Definition keeps its existing identifier and meta-schema handling. With none of
+them present, construction, compilation, verdicts, and reports are unchanged.
+
 The Ajv options that affect verdicts or error reports are
 honoured: `allErrors`, `verbose`, `messages`, `strictNumbers`, `unicodeRegExp`,
 `ownProperties`, `coerceTypes`, `useDefaults`, `removeAdditional`,
@@ -1142,6 +1167,15 @@ npm run verify  # prints the verdict comparison
   draft-07, 2019-09, 2020-12, and JSON Type Definition entry points. It also
   compares the messages for the collections ajv refuses at construction.
 - `test/fixtures/constructor-schemas-project` contains that unchanged project.
+- `test/registration-options.test.js` runs an unchanged project that disables
+  the default meta-schema, supplies its own meta-schema, disables automatic
+  registration, and selects the legacy identifier property on the draft-07,
+  2019-09, and 2020-12 entry points. It requires the same defaults, resolved
+  meta-schemas, compilation decisions, verdicts, reports, diagnostic-channel
+  messages, and duplicate-identifier refusals as ajv, and it exercises the
+  legacy property's registration, lookup, references, verdicts, and reports on
+  this package directly because ajv 8.20 refuses every schema that uses it.
+- `test/fixtures/registration-options-project` contains that unchanged project.
 - `test/data-references.test.js` runs an unchanged project that enables ajv's
   `$data` option through the draft-07, 2019-09, and 2020-12 entry points. It
   compiles schemas whose keyword values are absolute and relative references,
