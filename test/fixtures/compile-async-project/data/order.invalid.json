@@ -1,0 +1,11 @@
+{
+  "customer": {
+    "name": "Ada Lovelace",
+    "address": {
+      "street": "",
+      "city": 7,
+      "postalCode": "SW1"
+    },
+    "extra": true
+  }
+}

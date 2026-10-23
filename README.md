@@ -17,25 +17,25 @@ means faster.
 
 | Case | ajv (docs/s) | ajv-turbo (docs/s) | Change |
 |---|--:|--:|--:|
-| `definitions` — valid definition | 1,923,317 | 43,977,839 | **+2,187%** |
-| `definitions` — invalid definition | 1,945,339 | 33,328,439 | **+1,613%** |
-| `ref` — remote ref containing refs | 5,864,127 | 85,938,538 | **+1,366%** |
-| `contains` — with `const` | 20,431,514 | 217,977,933 | **+967%** |
-| `contains` — validation | 30,461,239 | 252,708,810 | **+730%** |
-| `additionalProperties` — not through applicators | 11,026,364 | 80,330,656 | **+629%** |
-| `oneOf` — boolean schemas, all false | 20,220,250 | 133,701,496 | **+561%** |
-| `boolean_schema` — `false` | 76,800,216 | 505,628,783 | **+558%** |
-| `type` — `null` | 94,017,358 | 393,395,996 | **+318%** |
-| `properties` — object properties | 126,646,839 | 291,861,379 | **+131%** |
-| `uniqueItems=false` | 1,278,361,947 | 748,383,429 | **−41.5%** |
-| `dependencies` — empty array | 417,891,969 | 333,127,390 | **−20.3%** |
-| `anyOf` — one empty schema | 309,099,766 | 269,887,847 | **−12.7%** |
-| `pattern` — not anchored | 47,985,675 | 43,967,370 | **−8.4%** |
-| `bignum` — integer comparison | 125,508,438 | 118,476,266 | **−5.6%** |
-| **Whole suite** | 18,910,595 | 38,511,788 | **+104%** |
+| `definitions` — valid definition | 1,845,988 | 43,921,843 | **+2,279%** |
+| `definitions` — invalid definition | 1,844,438 | 32,850,370 | **+1,681%** |
+| `ref` — remote ref containing refs | 4,613,063 | 57,130,940 | **+1,139%** |
+| `contains` — with `const` | 21,070,465 | 216,529,640 | **+928%** |
+| `contains` — validation | 29,073,038 | 251,199,111 | **+764%** |
+| `additionalProperties` — not through applicators | 10,765,249 | 78,491,999 | **+629%** |
+| `oneOf` — boolean schemas, all false | 20,043,606 | 140,099,516 | **+599%** |
+| `boolean_schema` — `false` | 72,949,379 | 505,271,969 | **+593%** |
+| `type` — `null` | 91,231,294 | 384,817,434 | **+322%** |
+| `properties` — object properties | 129,903,832 | 288,108,604 | **+122%** |
+| `uniqueItems=false` | 1,213,564,927 | 773,546,078 | **−36.3%** |
+| `bignum` — integer comparison | 121,233,704 | 89,046,297 | **−26.5%** |
+| `content` — media type | 364,825,737 | 274,901,285 | **−24.6%** |
+| `required` — empty array | 151,553,096 | 117,212,036 | **−22.7%** |
+| `pattern` — not anchored | 48,162,251 | 38,270,783 | **−20.5%** |
+| **Whole suite** | 17,633,158 | 36,296,101 | **+106%** |
 
-- Geometric mean of per-case ratios: **1.99× (+98.8%)**; median **+96.7%**.
-- 178 of 193 cases are faster; 15 are slower, the worst five shown above.
+- Geometric mean of per-case ratios: **2.02× (+102.1%)**; median **+94.0%**.
+- 179 of 193 cases are faster; 14 are slower, the worst five shown above.
 The 52 excluded cases are schemas ajv cannot compile under the suite's strict
 settings (unregistered formats and strict-mode keywords); excluded cases are
 not counted in either column. Each case is one Benchmark.js run on the machine
@@ -111,6 +111,12 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `nullable`, `unicodeRegExp`, `discriminator`, `$data`, and `logger`.
 - **Errors and async:** identical first/complete reports, `errorsText`,
   `verbose` context, and `$async` promise behavior.
+- **Asynchronous compilation:** `compileAsync` loads every missing reference
+  through the `loadSchema` option, registers each loaded schema for ordinary
+  lookup and reuse, shares one load between concurrent compilations, loads a
+  missing meta-schema before checking the schema, and reports ajv's errors for
+  a missing loader, an unresolvable reference, a rejected load, and a schema
+  the validator refuses.
 - **Standalone:** `standaloneCode` modules are self-contained and match ajv's
   verdicts and reports, including references, `$async`, rewriting options,
   registered formats/keywords, discriminators, and JSON Type Definition.
@@ -128,10 +134,11 @@ npm run verify  # prints the ajv verdict comparison
 ```
 
 The suite runs unchanged projects first with ajv and then with this package
-installed in its place, requiring identical output. It also runs the complete
-published 2019-09 and 2020-12 conformance corpora, every published benchmark
-case, and each JSON Type Definition serializer, parser, and generated module
-against ajv's.
+installed in its place, requiring identical output, including a project that
+loads missing references during asynchronous compilation. It also runs the
+complete published 2019-09 and 2020-12 conformance corpora, every published
+benchmark case, and each JSON Type Definition serializer, parser, and generated
+module against ajv's.
 
 ## Layout
 

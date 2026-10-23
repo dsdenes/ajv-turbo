@@ -228,6 +228,7 @@ export interface Options {
   keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
   meta?: boolean | Record<string, unknown>;
   defaultMeta?: string | Record<string, unknown>;
+  loadSchema?: (uri: string) => Promise<unknown>;
   schemaId?: "id" | "$id";
   addUsedSchema?: boolean;
   $data?: boolean;
@@ -292,8 +293,11 @@ export default class Ajv {
   compile<T = unknown>(schema: {$async: true; [key: string]: unknown}): AsyncValidateFunction<T>;
   compile<T = unknown>(schema: unknown): ValidateFunction<T>;
   validate(schema: unknown, data: unknown): boolean | Promise<unknown>;
-  compileAsync<T = unknown>(schema: {$async: true; [key: string]: unknown}): Promise<AsyncValidateFunction<T>>;
-  compileAsync<T = unknown>(schema: unknown): Promise<ValidateFunction<T>>;
+  compileAsync<T = unknown>(
+    schema: {$async: true; [key: string]: unknown},
+    meta?: boolean,
+  ): Promise<AsyncValidateFunction<T>>;
+  compileAsync<T = unknown>(schema: unknown, meta?: boolean): Promise<ValidateFunction<T>>;
   addSchema(schema: unknown, key?: string): this;
   getSchema<T = unknown>(ref: string): AnyValidateFunction<T> | undefined;
   removeSchema(ref?: string | RegExp): this;

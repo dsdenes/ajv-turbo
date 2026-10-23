@@ -1,0 +1,11 @@
+{
+  "$id": "https://example.com/schemas/address",
+  "type": "object",
+  "required": ["street", "city"],
+  "properties": {
+    "street": {"type": "string", "minLength": 1},
+    "city": {"type": "string", "minLength": 1},
+    "postalCode": {"type": "string", "pattern": "^[0-9]{5}$"}
+  },
+  "additionalProperties": false
+}
