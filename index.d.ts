@@ -226,6 +226,10 @@ export interface Options {
   formats?: Record<string, Format>;
   schemas?: readonly unknown[] | Record<string, unknown>;
   keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
+  meta?: boolean | Record<string, unknown>;
+  defaultMeta?: string | Record<string, unknown>;
+  schemaId?: "id" | "$id";
+  addUsedSchema?: boolean;
   $data?: boolean;
   discriminator?: boolean;
   passContext?: boolean;

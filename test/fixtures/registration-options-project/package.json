@@ -1,0 +1,13 @@
+{
+  "name": "registration-options-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing Node.js service that configures the validator's meta-schemas and schema registration",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}
