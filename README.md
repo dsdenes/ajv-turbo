@@ -123,7 +123,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   types, tuples, and `strictRequired`.
 - **Options:** `allErrors`, `verbose`, `messages`, `coerceTypes`, `useDefaults`,
   `removeAdditional`, `ownProperties`, `strictNumbers`, `multipleOfPrecision`,
-  `nullable`, `unicodeRegExp`, `discriminator`, `$data`, `$comment` (logged or
+  `nullable`, `unicodeRegExp`, `unicode` (code-point counting when absent or
+  `true`, UTF-16 code-unit counting when `false`), `discriminator`, `$data`,
+  `$comment` (logged or
   through a callback, with ajv's text, schema path, and root schema),
   `logger`, and `uriResolver`.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
