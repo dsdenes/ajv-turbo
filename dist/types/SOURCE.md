@@ -8,6 +8,11 @@ must reproduce exactly; rewriting them would change the inferred types.
 The remaining declarations in this package follow ajv 8.20.0's published type
 surface, restated against this package's entry points.
 
+The runtime-helper and reference-module declarations ajv publishes from package
+subpaths (`dist/runtime/*.d.ts` and `dist/refs/**/*.d.ts`) are copied verbatim
+from the same ajv release, so those subpath imports resolve with ajv's exact
+types.
+
 ## Licence
 
 The MIT License (MIT)
