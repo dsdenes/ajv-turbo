@@ -125,8 +125,14 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
 - **Options:** `allErrors`, `verbose`, `messages`, `coerceTypes`, `useDefaults`,
   `removeAdditional`, `ownProperties`, `strictNumbers`, `multipleOfPrecision`,
   `nullable`, `unicodeRegExp`, `discriminator`, `$data`, `$comment` (logged or
-  through a callback, with ajv's text, schema path, and root schema), and
-  `logger`.
+  through a callback, with ajv's text, schema path, and root schema),
+  `logger`, and `uriResolver`.
+- **Custom identifier resolution:** a project-supplied `uriResolver` — its
+  `parse`, `serialize`, and `resolve` — decides how schema identifiers and
+  references are formed, resolved, and compared, including identifiers the
+  strategy treats as equivalent, while stored keys and default resolution stay
+  as ajv leaves them. A reference the strategy cannot resolve is refused with
+  ajv's message and its `missingRef`/`missingSchema` values.
 - **Errors and async:** identical first/complete reports, `errorsText`,
   `verbose` context, and `$async` promise behavior.
 - **Asynchronous compilation:** `compileAsync` loads every missing reference
@@ -163,11 +169,12 @@ npm run verify  # prints the ajv verdict comparison
 
 The suite runs unchanged projects first with ajv and then with this package
 installed in its place, requiring identical output, including a project that
-loads missing references during asynchronous compilation and a TypeScript
-project that type-checks against ajv's published schema types. It also runs the
-complete published 2019-09 and 2020-12 conformance corpora, every published
-benchmark case, and each JSON Type Definition serializer, parser, and generated
-module against ajv's.
+loads missing references during asynchronous compilation, a project that
+supplies its own schema identifier strategy, and a TypeScript project that
+type-checks against ajv's published schema types. It also runs the complete
+published 2019-09 and 2020-12 conformance corpora, every published benchmark
+case, and each JSON Type Definition serializer, parser, and generated module
+against ajv's.
 
 ## Layout
 
