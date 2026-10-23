@@ -1,0 +1,10 @@
+{
+  "$id": "https://example.com/schemas/customer",
+  "type": "object",
+  "required": ["name", "address"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "address": {"$ref": "https://example.com/schemas/address"}
+  },
+  "additionalProperties": false
+}

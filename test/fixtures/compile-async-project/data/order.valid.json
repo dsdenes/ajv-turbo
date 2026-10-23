@@ -1,0 +1,10 @@
+{
+  "customer": {
+    "name": "Ada Lovelace",
+    "address": {
+      "street": "12 Analytical Way",
+      "city": "London",
+      "postalCode": "10245"
+    }
+  }
+}

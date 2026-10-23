@@ -111,6 +111,12 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `nullable`, `unicodeRegExp`, `discriminator`, `$data`, and `logger`.
 - **Errors and async:** identical first/complete reports, `errorsText`,
   `verbose` context, and `$async` promise behavior.
+- **Asynchronous compilation:** `compileAsync` loads every missing reference
+  through the `loadSchema` option, registers each loaded schema for ordinary
+  lookup and reuse, shares one load between concurrent compilations, loads a
+  missing meta-schema before checking the schema, and reports ajv's errors for
+  a missing loader, an unresolvable reference, a rejected load, and a schema
+  the validator refuses.
 - **Standalone:** `standaloneCode` modules are self-contained and match ajv's
   verdicts and reports, including references, `$async`, rewriting options,
   registered formats/keywords, discriminators, and JSON Type Definition.
@@ -128,10 +134,11 @@ npm run verify  # prints the ajv verdict comparison
 ```
 
 The suite runs unchanged projects first with ajv and then with this package
-installed in its place, requiring identical output. It also runs the complete
-published 2019-09 and 2020-12 conformance corpora, every published benchmark
-case, and each JSON Type Definition serializer, parser, and generated module
-against ajv's.
+installed in its place, requiring identical output, including a project that
+loads missing references during asynchronous compilation. It also runs the
+complete published 2019-09 and 2020-12 conformance corpora, every published
+benchmark case, and each JSON Type Definition serializer, parser, and generated
+module against ajv's.
 
 ## Layout
 

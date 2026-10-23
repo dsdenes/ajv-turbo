@@ -1,0 +1,8 @@
+{
+  "$id": "https://example.com/meta/profile",
+  "type": "object",
+  "required": ["marker"],
+  "properties": {
+    "marker": {"type": "boolean"}
+  }
+}
