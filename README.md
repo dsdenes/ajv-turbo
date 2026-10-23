@@ -6,8 +6,9 @@ every entry point ajv presents to consumers — draft-07 by default, 2019-09,
 helpers extension authors import, and the runtime helpers generated validators
 require — and returns ajv's verdict and error report for the covered surface,
 including formats, custom keywords, `$data`, discriminators, asynchronous
-validation, and standalone validators. Its only runtime dependency is the URI
-resolver `fast-uri`, the same one ajv uses.
+validation, standalone validators, and the location, container, and document
+root a caller supplies to a compiled validator. Its only runtime dependency is
+the URI resolver `fast-uri`, the same one ajv uses.
 
 ## Benchmark
 
