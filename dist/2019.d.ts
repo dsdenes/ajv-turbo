@@ -27,16 +27,23 @@ export type {
   ErrorsTextOptions,
   SchemaCxt,
   SchemaObjCxt,
-  KeywordCxt,
   DefinedError,
   JSONType,
   JSONSchemaType,
   Code,
-  CodeGen,
   CodeGenOptions,
-  Name,
 } from "../index";
-export {ValidationError, MissingRefError} from "../index";
+export {
+  ValidationError,
+  MissingRefError,
+  KeywordCxt,
+  Name,
+  CodeGen,
+  _,
+  str,
+  stringify,
+  nil,
+} from "../index";
 
 export declare class Ajv2019 extends BaseAjv {}
 export {Ajv2019 as Ajv};

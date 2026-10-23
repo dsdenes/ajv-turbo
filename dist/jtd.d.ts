@@ -34,16 +34,23 @@ export type {
   ErrorsTextOptions,
   SchemaCxt,
   SchemaObjCxt,
-  KeywordCxt,
   JSONSchemaType,
   Code,
-  CodeGen,
   CodeGenOptions,
-  Name,
   JTDParser,
 } from "../index";
 export type {JTDSchemaType, SomeJTDSchemaType, JTDDataType};
-export {ValidationError, MissingRefError} from "../index";
+export {
+  ValidationError,
+  MissingRefError,
+  KeywordCxt,
+  Name,
+  CodeGen,
+  _,
+  str,
+  stringify,
+  nil,
+} from "../index";
 
 export type JTDOptions = CurrentOptions & {
   strict?: never;

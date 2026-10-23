@@ -3,13 +3,13 @@
 // compile against this file unchanged; `dist/2019.d.ts`, `dist/2020.d.ts`, and
 // `dist/jtd.d.ts` re-export the same names from their own entry points.
 
-import {Name, _, str, stringify, nil} from "./dist/compile/codegen";
-import type {Code, CodeGen, ValueScope} from "./dist/compile/codegen";
+import {CodeGen, Name, _, str, stringify, nil} from "./dist/compile/codegen";
+import type {Code, CodeGenOptions, ValueScope} from "./dist/compile/codegen";
 import type {JSONSchemaType} from "./dist/types/json-schema";
 import type {JTDSchemaType, SomeJTDSchemaType, JTDDataType} from "./dist/types/jtd-schema";
 
-export {Name, _, str, stringify, nil};
-export type {Code, CodeGen, CodeGenOptions} from "./dist/compile/codegen";
+export {CodeGen, Name, _, str, stringify, nil};
+export type {Code, CodeGenOptions} from "./dist/compile/codegen";
 export type {JSONSchemaType} from "./dist/types/json-schema";
 
 export type JSONType = "string" | "number" | "integer" | "boolean" | "null" | "object" | "array";
@@ -825,6 +825,7 @@ export default class Ajv {
   static stringify: typeof stringify;
   static nil: typeof nil;
   static Name: typeof Name;
+  static CodeGen: typeof CodeGen;
   static KeywordCxt: typeof KeywordCxt;
   static default: typeof Ajv;
   static Ajv: typeof Ajv;
