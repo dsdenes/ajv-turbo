@@ -1,10 +1,13 @@
 # ajv-turbo — drop-in `ajv` replacement, faster
 
-`@dsdenes/ajv-turbo` replaces `ajv` 8.20 on Node.js 24 with no runtime
-dependencies. It exposes ajv's API and entry points — draft-07 by default,
-2019-09, 2020-12, and JSON Type Definition — and returns ajv's verdict and error
-report for the covered surface, including formats, custom keywords, `$data`,
-discriminators, asynchronous validation, and standalone validators.
+`@dsdenes/ajv-turbo` replaces `ajv` 8.20 on Node.js 24. It exposes ajv's API and
+every entry point ajv presents to consumers — draft-07 by default, 2019-09,
+2020-12, JSON Type Definition, standalone generation, the code-generation
+helpers extension authors import, and the runtime helpers generated validators
+require — and returns ajv's verdict and error report for the covered surface,
+including formats, custom keywords, `$data`, discriminators, asynchronous
+validation, and standalone validators. Its only runtime dependency is the URI
+resolver `fast-uri`, the same one ajv uses.
 
 ## Benchmark
 
@@ -64,17 +67,29 @@ const validate = new Ajv().compile({type: "string"});
 validate("ok");
 ```
 
-`ajv/dist/2019`, `ajv/dist/2020`, `ajv/dist/jtd`, and `ajv/dist/standalone`
-resolve the same way through the alias.
+`ajv/dist/ajv`, `ajv/dist/core`, `ajv/dist/2019`, `ajv/dist/2020`,
+`ajv/dist/jtd`, `ajv/dist/standalone`, and every runtime, refs, type, and
+codegen path in the table below resolve the same way through the alias.
 
 ## Entry points
 
-| Import | Dialect |
+| Import | Surface |
 |---|---|
-| `@dsdenes/ajv-turbo` | draft-07 (ajv's default) |
+| `@dsdenes/ajv-turbo` | draft-07 (ajv's default), with ajv's codegen helpers |
+| `@dsdenes/ajv-turbo/dist/ajv` | the same default entry point |
+| `@dsdenes/ajv-turbo/dist/core` | the base class and codegen helpers |
 | `@dsdenes/ajv-turbo/dist/2019` | 2019-09 |
 | `@dsdenes/ajv-turbo/dist/2020` | 2020-12 |
 | `@dsdenes/ajv-turbo/dist/jtd` | JSON Type Definition |
+| `@dsdenes/ajv-turbo/dist/standalone` | `standaloneCode`, also at `/standalone/index` and `/standalone/instance` |
+| `@dsdenes/ajv-turbo/dist/compile/codegen` | the helpers ajv publishes for extension authors (`_`, `str`, `Name`, `CodeGen`, `ValueScope`, …), also at `/code`, `/index`, and `/scope` |
+| `@dsdenes/ajv-turbo/dist/runtime/*` | `equal`, `parseJson`, `quote`, `re2`, `timestamp`, `ucs2length`, `uri`, `validation_error` |
+| `@dsdenes/ajv-turbo/dist/refs/*` | the bundled meta-schemas and the 2019-09, 2020-12, and JTD meta-schema modules |
+| `@dsdenes/ajv-turbo/dist/types/*` | the type-only modules ajv ships |
+
+Every entry point exposes the same names as ajv's, with the same kind, and the
+code-generation helpers are the same objects on every entry point that re-exports
+them.
 
 Draft-06 schemas work through the default entry point after registering the
 bundled meta-schema:
@@ -120,6 +135,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
 - **Standalone:** `standaloneCode` modules are self-contained and match ajv's
   verdicts and reports, including references, `$async`, rewriting options,
   registered formats/keywords, discriminators, and JSON Type Definition.
+- **Public entry points:** every entry point ajv presents exposes ajv's export
+  names and kinds, including the code-generation helpers, the runtime helpers
+  generated validators require, and the bundled meta-schema modules.
 
 Not covered: asynchronous keywords written in the code form, `$data` on the
 JSON Type Definition entry point, standalone parser/serializer modules, and
@@ -143,10 +161,12 @@ module against ajv's.
 ## Layout
 
 - `index.js`, `index.mjs`, `index.d.ts` — CommonJS, ESM, and TypeScript entries.
-- `dist/` — published entry points (`2019`, `2020`, `jtd`, `standalone`),
-  runtime helpers, and mirrored meta-schemas.
+- `dist/` — published entry points (`ajv`, `core`, `2019`, `2020`, `jtd`,
+  `standalone`), the code-generation helpers, runtime helpers, and mirrored
+  meta-schemas.
 - `lib/` — dialect classes, compiler, reference resolution, fast path,
-  discriminator, keyword code surface, and JTD validator/parser/serializer.
+  discriminator, keyword code surface, the ajv-compatible code generator, and
+  the JTD validator/parser/serializer.
 - `bench/runner.js` — benchmark comparison; results in `bench/REPORT.md`.
 - `test/` — verification scripts and unchanged project fixtures.
 

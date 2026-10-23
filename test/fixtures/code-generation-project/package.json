@@ -1,0 +1,9 @@
+{
+  "name": "code-generation-project",
+  "private": true,
+  "version": "1.0.0",
+  "description": "An unchanged ajv project that builds validators with ajv's published code-generation helpers",
+  "dependencies": {
+    "ajv": "^8.20.0"
+  }
+}

@@ -69,7 +69,30 @@
     "./dist/runtime/*.js": "./dist/runtime/*.js",
     "./lib/*": "./lib/*",
     "./dist/refs/*": "./dist/refs/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./dist/core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js",
+      "require": "./dist/core.js",
+      "default": "./dist/core.js"
+    },
+    "./dist/core.js": "./dist/core.js",
+    "./dist/compile/codegen/code": "./dist/compile/codegen/code.js",
+    "./dist/compile/codegen/code.js": "./dist/compile/codegen/code.js",
+    "./dist/compile/codegen/index": "./dist/compile/codegen/index.js",
+    "./dist/compile/codegen/index.js": "./dist/compile/codegen/index.js",
+    "./dist/compile/codegen/scope": "./dist/compile/codegen/scope.js",
+    "./dist/compile/codegen/scope.js": "./dist/compile/codegen/scope.js",
+    "./dist/refs/json-schema-2019-09": "./dist/refs/json-schema-2019-09/index.js",
+    "./dist/refs/json-schema-2019-09/index": "./dist/refs/json-schema-2019-09/index.js",
+    "./dist/refs/json-schema-2019-09/index.js": "./dist/refs/json-schema-2019-09/index.js",
+    "./dist/refs/json-schema-2020-12": "./dist/refs/json-schema-2020-12/index.js",
+    "./dist/refs/json-schema-2020-12/index": "./dist/refs/json-schema-2020-12/index.js",
+    "./dist/refs/json-schema-2020-12/index.js": "./dist/refs/json-schema-2020-12/index.js",
+    "./dist/refs/jtd-schema": "./dist/refs/jtd-schema.js",
+    "./dist/refs/jtd-schema.js": "./dist/refs/jtd-schema.js",
+    "./dist/types/*": "./dist/types/*.js",
+    "./dist/types/*.js": "./dist/types/*.js"
   },
   "files": [
     "index.js",
@@ -91,5 +114,8 @@
     "ajv-keywords": "^5.1.0",
     "ajv-reference": "npm:ajv@8.20.0",
     "benchmark": "^2.1.4"
+  },
+  "dependencies": {
+    "fast-uri": "^3.0.1"
   }
 }
