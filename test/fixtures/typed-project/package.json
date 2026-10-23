@@ -1,0 +1,17 @@
+{
+  "name": "typed-orders-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Existing TypeScript service that validates documents with ajv",
+  "main": "dist/index.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
