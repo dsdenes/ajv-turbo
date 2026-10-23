@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "node16",
+    "moduleResolution": "node16",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noEmit": true,
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "ajv/*": ["./node_modules/ajv/*"]
+    },
+    "skipLibCheck": true
+  },
+  "include": ["subpaths.ts"]
+}

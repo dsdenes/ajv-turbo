@@ -123,8 +123,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   types, tuples, and `strictRequired`.
 - **Options:** `allErrors`, `verbose`, `messages`, `coerceTypes`, `useDefaults`,
   `removeAdditional`, `ownProperties`, `strictNumbers`, `multipleOfPrecision`,
-  `nullable`, `unicodeRegExp`, `discriminator`, `$data`, `logger`, and
-  `uriResolver`.
+  `nullable`, `unicodeRegExp`, `discriminator`, `$data`, `$comment` (logged or
+  through a callback, with ajv's text, schema path, and root schema),
+  `logger`, and `uriResolver`.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
   `parse`, `serialize`, and `resolve` — decides how schema identifiers and
   references are formed, resolved, and compared, including identifiers the
@@ -145,6 +146,13 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
 - **Public entry points:** every entry point ajv presents exposes ajv's export
   names and kinds, including the code-generation helpers, the runtime helpers
   generated validators require, and the bundled meta-schema modules.
+- **TypeScript:** every type ajv publishes from the package root, `core`,
+  `2019`, `2020`, `jtd`, `standalone`, `standalone/instance`, the code
+  generation entry points, and the type modules resolves from the same entry
+  point here, including `JSONSchemaType`, `JTDSchemaType`, `JTDDataType`,
+  validator and error types, keyword and format definitions, options, and the
+  code-generation surface. Schema annotations keep their inferred types, so an
+  unchanged typed project compiles against this package.
 
 Not covered: asynchronous keywords written in the code form, `$data` on the
 JSON Type Definition entry point, standalone parser/serializer modules, and
@@ -160,8 +168,9 @@ npm run verify  # prints the ajv verdict comparison
 
 The suite runs unchanged projects first with ajv and then with this package
 installed in its place, requiring identical output, including a project that
-loads missing references during asynchronous compilation and a project that
-supplies its own schema identifier strategy. It also runs the complete
+loads missing references during asynchronous compilation, a project that
+supplies its own schema identifier strategy, and a TypeScript project that
+type-checks against ajv's published schema types. It also runs the complete
 published 2019-09 and 2020-12 conformance corpora, every published benchmark
 case, and each JSON Type Definition serializer, parser, and generated module
 against ajv's.
@@ -170,8 +179,9 @@ against ajv's.
 
 - `index.js`, `index.mjs`, `index.d.ts` — CommonJS, ESM, and TypeScript entries.
 - `dist/` — published entry points (`ajv`, `core`, `2019`, `2020`, `jtd`,
-  `standalone`), the code-generation helpers, runtime helpers, and mirrored
-  meta-schemas.
+  `standalone`, code generation, and type modules), type declarations, runtime
+  helpers, and mirrored meta-schemas. The schema inference modules in
+  `dist/types/` are copied from ajv 8.20.0; see the provenance note there.
 - `lib/` — dialect classes, compiler, reference resolution, fast path,
   discriminator, keyword code surface, the ajv-compatible code generator, and
   the JTD validator/parser/serializer.

@@ -24,49 +24,114 @@
       "require": "./index.js",
       "default": "./index.js"
     },
-    "./dist/ajv": "./dist/ajv.js",
-    "./dist/ajv.js": "./dist/ajv.js",
+    "./dist/ajv": {
+      "types": "./dist/ajv.d.ts",
+      "import": "./dist/ajv.js",
+      "require": "./dist/ajv.js",
+      "default": "./dist/ajv.js"
+    },
+    "./dist/ajv.js": {
+      "types": "./dist/ajv.d.ts",
+      "import": "./dist/ajv.js",
+      "require": "./dist/ajv.js",
+      "default": "./dist/ajv.js"
+    },
     "./dist/2019": {
       "types": "./dist/2019.d.ts",
       "import": "./dist/2019.js",
       "require": "./dist/2019.js",
       "default": "./dist/2019.js"
     },
-    "./dist/2019.js": "./dist/2019.js",
+    "./dist/2019.js": {
+      "types": "./dist/2019.d.ts",
+      "import": "./dist/2019.js",
+      "require": "./dist/2019.js",
+      "default": "./dist/2019.js"
+    },
     "./dist/2020": {
       "types": "./dist/2020.d.ts",
       "import": "./dist/2020.js",
       "require": "./dist/2020.js",
       "default": "./dist/2020.js"
     },
-    "./dist/2020.js": "./dist/2020.js",
+    "./dist/2020.js": {
+      "types": "./dist/2020.d.ts",
+      "import": "./dist/2020.js",
+      "require": "./dist/2020.js",
+      "default": "./dist/2020.js"
+    },
     "./dist/jtd": {
       "types": "./dist/jtd.d.ts",
       "import": "./dist/jtd.js",
       "require": "./dist/jtd.js",
       "default": "./dist/jtd.js"
     },
-    "./dist/jtd.js": "./dist/jtd.js",
+    "./dist/jtd.js": {
+      "types": "./dist/jtd.d.ts",
+      "import": "./dist/jtd.js",
+      "require": "./dist/jtd.js",
+      "default": "./dist/jtd.js"
+    },
     "./dist/standalone": {
       "types": "./dist/standalone.d.ts",
       "import": "./dist/standalone.js",
       "require": "./dist/standalone.js",
       "default": "./dist/standalone.js"
     },
-    "./dist/standalone.js": "./dist/standalone.js",
-    "./dist/standalone/index": "./dist/standalone/index.js",
-    "./dist/standalone/index.js": "./dist/standalone/index.js",
+    "./dist/standalone.js": {
+      "types": "./dist/standalone.d.ts",
+      "import": "./dist/standalone.js",
+      "require": "./dist/standalone.js",
+      "default": "./dist/standalone.js"
+    },
+    "./dist/standalone/index": {
+      "types": "./dist/standalone/index.d.ts",
+      "import": "./dist/standalone/index.js",
+      "require": "./dist/standalone/index.js",
+      "default": "./dist/standalone/index.js"
+    },
+    "./dist/standalone/index.js": {
+      "types": "./dist/standalone/index.d.ts",
+      "import": "./dist/standalone/index.js",
+      "require": "./dist/standalone/index.js",
+      "default": "./dist/standalone/index.js"
+    },
     "./dist/standalone/instance": {
       "types": "./dist/standalone/instance.d.ts",
       "import": "./dist/standalone/instance.js",
       "require": "./dist/standalone/instance.js",
       "default": "./dist/standalone/instance.js"
     },
-    "./dist/standalone/instance.js": "./dist/standalone/instance.js",
-    "./dist/compile/codegen": "./dist/compile/codegen.js",
-    "./dist/compile/codegen.js": "./dist/compile/codegen.js",
-    "./dist/runtime/*": "./dist/runtime/*.js",
-    "./dist/runtime/*.js": "./dist/runtime/*.js",
+    "./dist/standalone/instance.js": {
+      "types": "./dist/standalone/instance.d.ts",
+      "import": "./dist/standalone/instance.js",
+      "require": "./dist/standalone/instance.js",
+      "default": "./dist/standalone/instance.js"
+    },
+    "./dist/compile/codegen": {
+      "types": "./dist/compile/codegen.d.ts",
+      "import": "./dist/compile/codegen.js",
+      "require": "./dist/compile/codegen.js",
+      "default": "./dist/compile/codegen.js"
+    },
+    "./dist/compile/codegen.js": {
+      "types": "./dist/compile/codegen.d.ts",
+      "import": "./dist/compile/codegen.js",
+      "require": "./dist/compile/codegen.js",
+      "default": "./dist/compile/codegen.js"
+    },
+    "./dist/runtime/*": {
+      "types": "./dist/runtime/*.d.ts",
+      "import": "./dist/runtime/*.js",
+      "require": "./dist/runtime/*.js",
+      "default": "./dist/runtime/*.js"
+    },
+    "./dist/runtime/*.js": {
+      "types": "./dist/runtime/*.d.ts",
+      "import": "./dist/runtime/*.js",
+      "require": "./dist/runtime/*.js",
+      "default": "./dist/runtime/*.js"
+    },
     "./lib/*": "./lib/*",
     "./dist/refs/*": "./dist/refs/*",
     "./package.json": "./package.json",
@@ -76,13 +141,48 @@
       "require": "./dist/core.js",
       "default": "./dist/core.js"
     },
-    "./dist/core.js": "./dist/core.js",
-    "./dist/compile/codegen/code": "./dist/compile/codegen/code.js",
-    "./dist/compile/codegen/code.js": "./dist/compile/codegen/code.js",
-    "./dist/compile/codegen/index": "./dist/compile/codegen/index.js",
-    "./dist/compile/codegen/index.js": "./dist/compile/codegen/index.js",
-    "./dist/compile/codegen/scope": "./dist/compile/codegen/scope.js",
-    "./dist/compile/codegen/scope.js": "./dist/compile/codegen/scope.js",
+    "./dist/core.js": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js",
+      "require": "./dist/core.js",
+      "default": "./dist/core.js"
+    },
+    "./dist/compile/codegen/code": {
+      "types": "./dist/compile/codegen/code.d.ts",
+      "import": "./dist/compile/codegen/code.js",
+      "require": "./dist/compile/codegen/code.js",
+      "default": "./dist/compile/codegen/code.js"
+    },
+    "./dist/compile/codegen/code.js": {
+      "types": "./dist/compile/codegen/code.d.ts",
+      "import": "./dist/compile/codegen/code.js",
+      "require": "./dist/compile/codegen/code.js",
+      "default": "./dist/compile/codegen/code.js"
+    },
+    "./dist/compile/codegen/index": {
+      "types": "./dist/compile/codegen/index.d.ts",
+      "import": "./dist/compile/codegen/index.js",
+      "require": "./dist/compile/codegen/index.js",
+      "default": "./dist/compile/codegen/index.js"
+    },
+    "./dist/compile/codegen/index.js": {
+      "types": "./dist/compile/codegen/index.d.ts",
+      "import": "./dist/compile/codegen/index.js",
+      "require": "./dist/compile/codegen/index.js",
+      "default": "./dist/compile/codegen/index.js"
+    },
+    "./dist/compile/codegen/scope": {
+      "types": "./dist/compile/codegen/scope.d.ts",
+      "import": "./dist/compile/codegen/scope.js",
+      "require": "./dist/compile/codegen/scope.js",
+      "default": "./dist/compile/codegen/scope.js"
+    },
+    "./dist/compile/codegen/scope.js": {
+      "types": "./dist/compile/codegen/scope.d.ts",
+      "import": "./dist/compile/codegen/scope.js",
+      "require": "./dist/compile/codegen/scope.js",
+      "default": "./dist/compile/codegen/scope.js"
+    },
     "./dist/refs/json-schema-2019-09": "./dist/refs/json-schema-2019-09/index.js",
     "./dist/refs/json-schema-2019-09/index": "./dist/refs/json-schema-2019-09/index.js",
     "./dist/refs/json-schema-2019-09/index.js": "./dist/refs/json-schema-2019-09/index.js",
@@ -91,8 +191,18 @@
     "./dist/refs/json-schema-2020-12/index.js": "./dist/refs/json-schema-2020-12/index.js",
     "./dist/refs/jtd-schema": "./dist/refs/jtd-schema.js",
     "./dist/refs/jtd-schema.js": "./dist/refs/jtd-schema.js",
-    "./dist/types/*": "./dist/types/*.js",
-    "./dist/types/*.js": "./dist/types/*.js"
+    "./dist/types/*": {
+      "types": "./dist/types/*.d.ts",
+      "import": "./dist/types/*.js",
+      "require": "./dist/types/*.js",
+      "default": "./dist/types/*.js"
+    },
+    "./dist/types/*.js": {
+      "types": "./dist/types/*.d.ts",
+      "import": "./dist/types/*.js",
+      "require": "./dist/types/*.js",
+      "default": "./dist/types/*.js"
+    }
   },
   "files": [
     "index.js",
@@ -113,7 +223,8 @@
     "ajv-formats": "^3.0.1",
     "ajv-keywords": "^5.1.0",
     "ajv-reference": "npm:ajv@8.20.0",
-    "benchmark": "^2.1.4"
+    "benchmark": "^2.1.4",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "fast-uri": "^3.0.1"
