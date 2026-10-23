@@ -127,7 +127,8 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `true`, UTF-16 code-unit counting when `false`), `discriminator`, `$data`,
   `$comment` (logged or
   through a callback, with ajv's text, schema path, and root schema),
-  `logger`, and `uriResolver`.
+  `logger`, and `uriResolver`, plus ajv's diagnostics for removed and
+  deprecated settings: the same severity, wording, order, and console output.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
   `parse`, `serialize`, and `resolve` — decides how schema identifiers and
   references are formed, resolved, and compared, including identifiers the
@@ -171,11 +172,12 @@ npm run verify  # prints the ajv verdict comparison
 The suite runs unchanged projects first with ajv and then with this package
 installed in its place, requiring identical output, including a project that
 loads missing references during asynchronous compilation, a project that
-supplies its own schema identifier strategy, and a TypeScript project that
-type-checks against ajv's published schema types. It also runs the complete
-published 2019-09 and 2020-12 conformance corpora, every published benchmark
-case, and each JSON Type Definition serializer, parser, and generated module
-against ajv's.
+supplies its own schema identifier strategy, a project whose removed and
+deprecated settings must report ajv's diagnostics, and a TypeScript project
+that type-checks against ajv's published schema types. It also runs the
+complete published 2019-09 and 2020-12 conformance corpora, every published
+benchmark case, and each JSON Type Definition serializer, parser, and
+generated module against ajv's.
 
 ## Layout
 
