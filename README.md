@@ -1185,6 +1185,17 @@ npm run verify  # prints the verdict comparison
   same verdicts and printed reports as ajv. The project exercises typed and
   untyped macros, fragments that refer to local and registered schemas, a
   function that reports its own error entries, and keyword removal.
+- `test/pass-context.test.js` runs an unchanged project that enables ajv's
+  `passContext` option and decides validity from the context it supplies to
+  each validation call. It requires the rule to observe the very object the
+  project created — directly, through one and two references, inside macros,
+  through compiled rules, in asynchronous rules, and in asynchronous schemas —
+  and requires identical verdicts, error entries in the same order, and
+  `errorsText` summaries under first-error and complete reporting. Calls that
+  supply no context must bind the rule's `this` exactly as ajv does, and the
+  same rules in a validator that does not enable the option must keep receiving
+  the Ajv instance.
+- `test/fixtures/pass-context-project` contains that unchanged project.
 - `test/code-keywords.test.js` runs an unchanged project whose custom keywords
   contribute generated validation code through the draft-07, 2019-09, and
   2020-12 entry points, under first-error, complete, verbose, and message-free
