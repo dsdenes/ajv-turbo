@@ -1,8 +1,19 @@
 {
-  "name": "ajv",
+  "name": "@dsdenes/ajv-turbo",
   "version": "8.20.0",
   "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-06, draft-07, 2019-09, and 2020-12 validation, the formats and keyword-extension plugins, registered custom keywords, ajv data references, discriminators, asynchronous validation, and JSON Type Definition validation, text parsing, and text generation",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsdenes/ajv-turbo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dsdenes/ajv-turbo/issues"
+  },
+  "homepage": "https://github.com/dsdenes/ajv-turbo#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "index.js",
   "module": "index.mjs",
   "types": "index.d.ts",

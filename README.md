@@ -1,6 +1,7 @@
-# ajv-compatible JSON Schema validator
+# ajv-turbo — ajv-compatible JSON Schema validator
 
-A dependency-free replacement for the `ajv` package on Node.js 24. It exposes the
+A dependency-free replacement for the `ajv` package on Node.js 24, published as
+`@dsdenes/ajv-turbo`. It exposes the
 `ajv` API and, for schemas that use ajv's default draft-07 dialect, its JSON
 Schema 2019-09 and 2020-12 dialects, or its JSON Type Definition validator,
 together with the formats, the custom keywords, and the discriminator option the
@@ -20,10 +21,10 @@ Entry points mirror ajv's:
 
 |Import|Dialect|
 |---|---|
-|`require("ajv")` / `import Ajv from "ajv"`|draft-07 (ajv's default)|
-|`require("ajv/dist/2019")` / `import Ajv2019 from "ajv/dist/2019"`|2019-09|
-|`require("ajv/dist/2020")` / `import Ajv2020 from "ajv/dist/2020"`|2020-12|
-|`require("ajv/dist/jtd")` / `import AjvJTD from "ajv/dist/jtd"`|JSON Type Definition|
+|`require("@dsdenes/ajv-turbo")` / `import Ajv from "@dsdenes/ajv-turbo"`|draft-07 (ajv's default)|
+|`require("@dsdenes/ajv-turbo/dist/2019")` / `import Ajv2019 from "@dsdenes/ajv-turbo/dist/2019"`|2019-09|
+|`require("@dsdenes/ajv-turbo/dist/2020")` / `import Ajv2020 from "@dsdenes/ajv-turbo/dist/2020"`|2020-12|
+|`require("@dsdenes/ajv-turbo/dist/jtd")` / `import AjvJTD from "@dsdenes/ajv-turbo/dist/jtd"`|JSON Type Definition|
 
 
 ## JSON Schema draft-06
@@ -33,8 +34,8 @@ documents it: register the draft-06 meta-schema published with the package
 before compiling them.
 
 ```javascript
-const Ajv = require("ajv")
-const draft6MetaSchema = require("ajv/dist/refs/json-schema-draft-06.json")
+const Ajv = require("@dsdenes/ajv-turbo")
+const draft6MetaSchema = require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.json")
 
 const ajv = new Ajv()
 ajv.addMetaSchema(draft6MetaSchema)
@@ -203,7 +204,7 @@ the instance travel with it as source.
 text, with ajv's text for the same schema and value:
 
 ```js
-const AjvJTD = require("ajv/dist/jtd");
+const AjvJTD = require("@dsdenes/ajv-turbo/dist/jtd");
 const serialize = new AjvJTD().compileSerializer(schema);
 const text = serialize(value);
 ```
@@ -233,7 +234,7 @@ const text = serialize(value);
 with ajv's parsed value, messages, and offsets for the same schema and text:
 
 ```js
-const AjvJTD = require("ajv/dist/jtd");
+const AjvJTD = require("@dsdenes/ajv-turbo/dist/jtd");
 const parse = new AjvJTD().compileParser(schema);
 const value = parse(text);
 if (value === undefined) {
@@ -364,7 +365,7 @@ registered.
 A project can load ajv's official `ajv-formats` plugin without changing it:
 
 ```js
-const Ajv = require("ajv");
+const Ajv = require("@dsdenes/ajv-turbo");
 const addFormats = require("ajv-formats");
 const ajv = new Ajv();
 addFormats(ajv);                       // default formats and range keywords
@@ -404,7 +405,7 @@ the plugin; a project that never loads it behaves as before.
 A project can load ajv's official `ajv-keywords` plugin without changing it:
 
 ```js
-const Ajv = require("ajv");
+const Ajv = require("@dsdenes/ajv-turbo");
 const addKeywords = require("ajv-keywords");
 const ajv = new Ajv({$data: true});
 addKeywords(ajv);                    // every keyword the plugin defines
@@ -577,7 +578,7 @@ With ajv's `discriminator` option enabled, a tagged union validates only the
 `oneOf` branch its tag property selects:
 
 ```js
-const Ajv = require("ajv");
+const Ajv = require("@dsdenes/ajv-turbo");
 const ajv = new Ajv({discriminator: true});
 const validate = ajv.compile({
   type: "object",
@@ -979,8 +980,8 @@ for registered schemas, exactly as ajv's standalone generator does:
 
 ```js
 const fs = require("fs");
-const Ajv = require("ajv");
-const standaloneCode = require("ajv/dist/standalone");
+const Ajv = require("@dsdenes/ajv-turbo");
+const standaloneCode = require("@dsdenes/ajv-turbo/dist/standalone");
 
 const ajv = new Ajv({code: {source: true}});
 const validate = ajv.compile(schema);
@@ -1054,14 +1055,21 @@ const validateDocument = require("./validate");   // no build step
   JSON Type Definition validator over timestamps — keeps running after this
   package takes ajv's place.
 
-## Drop-in use
+## Install and drop-in use
 
-The package is named `ajv`, so it replaces ajv in a project's dependency setup
-while code, schemas, and configuration stay untouched:
+Install the package directly to import it by its scoped name:
+
+```sh
+npm install @dsdenes/ajv-turbo
+```
+
+The examples in this README use that name. A project that already depends on
+`ajv` can install this package under the `ajv` name instead; its code, schemas,
+and configuration then stay untouched:
 
 ```sh
 # in the project that already uses ajv
-npm install /path/to/this/package --no-save
+npm install ajv@npm:@dsdenes/ajv-turbo
 ```
 
 ```js
@@ -1071,33 +1079,9 @@ const validate = ajv.compile(schema);
 validate(data);
 ```
 
-`import Ajv from "ajv"` and `import {Ajv} from "ajv"` work as well. A project on
-the 2019-09 dialect keeps importing the same entry point it already uses:
-
-```js
-const Ajv2019 = require("ajv/dist/2019");
-const ajv = new Ajv2019();
-```
-
-`import Ajv2019 from "ajv/dist/2019"` and `import {Ajv2019} from "ajv/dist/2019"`
-are supported too. A project on the 2020-12 dialect does the same with its entry
-point:
-
-```js
-const Ajv2020 = require("ajv/dist/2020");
-const ajv = new Ajv2020();
-```
-
-`import Ajv2020 from "ajv/dist/2020"` and `import {Ajv2020} from "ajv/dist/2020"`
-work as well. A project on JSON Type Definition keeps its entry point too:
-
-```js
-const AjvJTD = require("ajv/dist/jtd");
-const ajv = new AjvJTD();
-```
-
-`import AjvJTD from "ajv/dist/jtd"` and `import {Ajv} from "ajv/dist/jtd"` are
-supported as well.
+`import Ajv from "ajv"` and `import {Ajv} from "ajv"` work as well. The same
+alias covers the dialect entry points: `ajv/dist/2019`, `ajv/dist/2020`,
+`ajv/dist/jtd`, and `ajv/dist/standalone`.
 
 ## Benchmark
 
