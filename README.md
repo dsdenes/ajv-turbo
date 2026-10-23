@@ -806,6 +806,24 @@ a synchronous schema that uses one with `async keyword in sync schema`.
   `ValidationError` propagate to the caller. `modifying: true` re-reads the value
   the rule wrote through `dataCxt.parentData`.
 
+The vocabulary the validator knows is available through `getKeyword`, with
+ajv's answers:
+
+```js
+ajv.getKeyword("maximum");      // the built-in rule's declaration
+ajv.getKeyword("title");        // false — an annotation, not a rule
+ajv.getKeyword("myRule");       // the declaration registered for the rule
+ajv.getKeyword("notRegistered");// false
+```
+
+A project's own rule answers with the declaration it registered: the
+declarations it supplied, its `type` and `schemaType` as arrays, and the
+compiled `validateSchema` when the definition declares a `metaSchema`. A
+keyword registered by name alone, and a name the vocabulary does not know,
+answer `false`. `removeKeyword` makes the name unknown again for that
+validator. Each entry point publishes its own dialect's vocabulary, exactly as
+ajv's does, and `getKeyword` is the same on every entry point.
+
 ### Passing the caller's validation context
 
 With ajv's `passContext` option, a project supplies a context when it validates
@@ -1375,6 +1393,18 @@ npm run verify  # prints the verdict comparison
   route (`addKeyword` or the constructor's `keywords` option) from
   `REGISTRATION` and the dialect from `DIALECT`; it is used by the programmatic
   keywords check.
+- `test/keyword-lookup.test.js` runs an unchanged project that asks
+  `getKeyword` about a rule it registered, a built-in keyword, and a name it
+  never registered, validates through its own rule before and after the
+  queries, removes the rule, and asks again. The project runs through the
+  draft-07, 2019-09, 2020-12, and JSON Type Definition entry points, first with
+  ajv and then with this package in ajv's place; every printed answer, verdict,
+  report, and rewritten document must match. It also compares `getKeyword`
+  against ajv for every keyword in each dialect's table. The check generates a
+  standalone validator from a schema that uses the project's rule for each
+  JSON Schema entry point, loads both packages' modules in a program where no
+  validator package resolves, and requires the same verdicts and reports.
+- `test/fixtures/keyword-lookup-project` contains that unchanged project.
 - `test/fixtures/project-2019` contains the unchanged project that imports
   `ajv/dist/2019` and exercises recursive and dynamic references, dependent requirements,
   bounded contains, unevaluated tracking, formats, custom keywords,

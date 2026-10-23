@@ -181,6 +181,13 @@ export interface KeywordDefinition {
   [key: string]: unknown;
 }
 
+/** A definition as `getKeyword` reports it: the registered declaration. */
+export interface AddedKeywordDefinition extends KeywordDefinition {
+  type?: JSONType[];
+  schemaType?: JSONType[];
+  validateSchema?: ValidateFunction;
+}
+
 export interface FormatDefinition {
   type?: "string" | "number";
   validate: string | RegExp | FormatValidator;
@@ -289,6 +296,7 @@ export default class Ajv {
   validateSchema(schema: unknown, throwOrLogError?: boolean): boolean | Promise<unknown>;
   addKeyword(keyword: string, definition?: KeywordDefinition): this;
   addKeyword(definition: KeywordDefinition): this;
+  getKeyword(keyword: string): AddedKeywordDefinition | boolean;
   removeKeyword(keyword: string): this;
   addFormat(name: string, format: Format): this;
   addVocabulary(vocabulary: readonly (KeywordDefinition | string)[]): this;
