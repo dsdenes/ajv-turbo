@@ -54,6 +54,7 @@ test("a typed ajv project compiles and validates unchanged when the replacement 
   // Control: the fixture is a project that type-checks against published ajv.
   linkValidator(WORK_PROJECT, REFERENCE);
   runTsc(["-p", "tsconfig.json", "--noEmit"]);
+  runTsc(["-p", "tsconfig.subpaths.json"]);
 
   // Installed under ajv's name, the replacement type-checks and compiles the
   // unchanged project.
@@ -80,6 +81,7 @@ test("a typed ajv project compiles and validates unchanged when the replacement 
   // ajv's corresponding types are accepted.
   linkValidator(WORK_PROJECT, ROOT);
   runTsc(["-p", "tsconfig.compat.json"]);
+  runTsc(["-p", "tsconfig.subpaths.json"]);
 
   assert.strictEqual(hashDirectory(SOURCE_PROJECT), before, "fixture project was edited");
 });
