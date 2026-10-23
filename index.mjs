@@ -10,3 +10,4 @@ export const stringify = Ajv.stringify;
 export const nil = Ajv.nil;
 export const Name = Ajv.Name;
 export const KeywordCxt = Ajv.KeywordCxt;
+export const CodeGen = Ajv.CodeGen;

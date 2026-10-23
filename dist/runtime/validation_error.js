@@ -12,5 +12,4 @@ class ValidationError extends Error {
 
 ValidationError.code = 'require("ajv/dist/runtime/validation_error").default';
 
-module.exports = ValidationError;
-module.exports.default = ValidationError;
+exports.default = ValidationError;
