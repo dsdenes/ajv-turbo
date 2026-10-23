@@ -221,6 +221,7 @@ export interface Options {
   keywords?: readonly (KeywordDefinition | string)[] | Record<string, KeywordDefinition>;
   $data?: boolean;
   discriminator?: boolean;
+  passContext?: boolean;
   [key: string]: unknown;
 }
 

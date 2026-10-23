@@ -1,0 +1,5 @@
+{
+  "$id": "https://example.test/schemas/form.json",
+  "type": "object",
+  "additionalProperties": {"contextOnly": true}
+}

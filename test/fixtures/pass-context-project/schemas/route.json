@@ -1,0 +1,12 @@
+{
+  "$id": "https://example.test/schemas/route.json",
+  "type": "object",
+  "required": ["target"],
+  "properties": {
+    "target": {"$ref": "#/definitions/target"}
+  },
+  "definitions": {
+    "target": {"type": "number", "tenantGate": true}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,9 @@
+{
+  "$id": "https://example.test/schemas/profile.json",
+  "type": "object",
+  "required": ["handle"],
+  "properties": {
+    "handle": {"type": "string", "minLength": 2, "tenantHandle": true}
+  },
+  "additionalProperties": false
+}
