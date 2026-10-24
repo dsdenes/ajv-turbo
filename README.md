@@ -127,10 +127,12 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `nullable`, `unicodeRegExp`, `unicode` (code-point counting when absent or
   `true`, UTF-16 code-unit counting when `false`), `discriminator`, `$data`,
   `$comment` (logged or through a callback, with ajv's text, schema path, and
-  root schema), `logger`, and `uriResolver`, plus ajv's diagnostics for removed
-  and deprecated settings: the same severity, wording, order, and console
-  output. The deprecated `jsPropertySyntax` switch also works: bracket property
-  notation for reported instance locations.
+  root schema), `ignoreKeywordsWithRef` (the deprecated request to honour a
+  reference alone, ignoring the constraints beside it), `logger`, and
+  `uriResolver`, plus ajv's diagnostics for removed and deprecated settings:
+  the same severity, wording, order, and console output. The deprecated
+  `jsPropertySyntax` switch also works: bracket property notation for reported
+  instance locations.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
   `parse`, `serialize`, and `resolve` — decides how schema identifiers and
   references are formed, resolved, and compared, including identifiers the
