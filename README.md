@@ -78,7 +78,7 @@ codegen path in the table below resolve the same way through the alias.
 |---|---|
 | `@dsdenes/ajv-turbo` | draft-07 (ajv's default), with ajv's codegen helpers |
 | `@dsdenes/ajv-turbo/dist/ajv` | the same default entry point |
-| `@dsdenes/ajv-turbo/dist/core` | the base class and codegen helpers |
+| `@dsdenes/ajv-turbo/dist/core` | the base class (no dialect rules or meta-schema) and codegen helpers |
 | `@dsdenes/ajv-turbo/dist/2019` | 2019-09 |
 | `@dsdenes/ajv-turbo/dist/2020` | 2020-12 |
 | `@dsdenes/ajv-turbo/dist/jtd` | JSON Type Definition |
