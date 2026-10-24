@@ -1,7 +1,7 @@
 {
   "name": "@dsdenes/ajv-turbo",
   "version": "8.20.0",
-  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-06, draft-07, 2019-09, and 2020-12 validation, the formats and keyword-extension plugins, registered custom keywords, ajv data references, discriminators, asynchronous validation, asynchronous loading of missing schema references, and JSON Type Definition validation, text parsing, and text generation",
+  "description": "Drop-in JSON Schema validator for ajv, verdict- and error-report-compatible for draft-06, draft-07, 2019-09, and 2020-12 validation, the formats, keyword-extension, and error-message plugins, registered custom keywords, ajv data references, discriminators, asynchronous validation, asynchronous loading of missing schema references, and JSON Type Definition validation, text parsing, and text generation",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -183,6 +183,42 @@
       "require": "./dist/compile/codegen/scope.js",
       "default": "./dist/compile/codegen/scope.js"
     },
+    "./dist/compile/names": {
+      "types": "./dist/compile/names.d.ts",
+      "import": "./dist/compile/names.js",
+      "require": "./dist/compile/names.js",
+      "default": "./dist/compile/names.js"
+    },
+    "./dist/compile/names.js": {
+      "types": "./dist/compile/names.d.ts",
+      "import": "./dist/compile/names.js",
+      "require": "./dist/compile/names.js",
+      "default": "./dist/compile/names.js"
+    },
+    "./dist/compile/validate": {
+      "types": "./dist/compile/validate.d.ts",
+      "import": "./dist/compile/validate.js",
+      "require": "./dist/compile/validate.js",
+      "default": "./dist/compile/validate.js"
+    },
+    "./dist/compile/validate.js": {
+      "types": "./dist/compile/validate.d.ts",
+      "import": "./dist/compile/validate.js",
+      "require": "./dist/compile/validate.js",
+      "default": "./dist/compile/validate.js"
+    },
+    "./dist/compile/errors": {
+      "types": "./dist/compile/errors.d.ts",
+      "import": "./dist/compile/errors.js",
+      "require": "./dist/compile/errors.js",
+      "default": "./dist/compile/errors.js"
+    },
+    "./dist/compile/errors.js": {
+      "types": "./dist/compile/errors.d.ts",
+      "import": "./dist/compile/errors.js",
+      "require": "./dist/compile/errors.js",
+      "default": "./dist/compile/errors.js"
+    },
     "./dist/refs/json-schema-2019-09": "./dist/refs/json-schema-2019-09/index.js",
     "./dist/refs/json-schema-2019-09/index": "./dist/refs/json-schema-2019-09/index.js",
     "./dist/refs/json-schema-2019-09/index.js": "./dist/refs/json-schema-2019-09/index.js",
@@ -220,6 +256,7 @@
     "bench": "node bench/runner.js"
   },
   "devDependencies": {
+    "ajv-errors": "^3.0.0",
     "ajv-formats": "^3.0.1",
     "ajv-keywords": "^5.1.0",
     "ajv-reference": "npm:ajv@8.20.0",

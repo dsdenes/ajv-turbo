@@ -1,0 +1,14 @@
+{
+  "name": "errors-plugin-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Project that customizes ajv's error messages through the error-message extension",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-errors": "^3.0.0"
+  }
+}

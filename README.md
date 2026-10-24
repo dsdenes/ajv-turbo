@@ -84,6 +84,9 @@ codegen path in the table below resolve the same way through the alias.
 | `@dsdenes/ajv-turbo/dist/jtd` | JSON Type Definition |
 | `@dsdenes/ajv-turbo/dist/standalone` | `standaloneCode`, also at `/standalone/index` and `/standalone/instance` |
 | `@dsdenes/ajv-turbo/dist/compile/codegen` | the helpers ajv publishes for extension authors (`_`, `str`, `Name`, `CodeGen`, `ValueScope`, …), also at `/code`, `/index`, and `/scope` |
+| `@dsdenes/ajv-turbo/dist/compile/errors` | `reportError` and the keyword error definitions extension code imports |
+| `@dsdenes/ajv-turbo/dist/compile/names` | the generated-code variable names an extension reads (`vErrors`, `errors`, `instancePath`, …) |
+| `@dsdenes/ajv-turbo/dist/compile/validate` | the validation helper message interpolation imports (`getData`) |
 | `@dsdenes/ajv-turbo/dist/runtime/*` | `equal`, `parseJson`, `quote`, `re2`, `timestamp`, `ucs2length`, `uri`, `validation_error` |
 | `@dsdenes/ajv-turbo/dist/refs/*` | the bundled meta-schemas and the 2019-09, 2020-12, and JTD meta-schema modules |
 | `@dsdenes/ajv-turbo/dist/types/*` | the type-only modules ajv ships |
@@ -120,7 +123,10 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   forms, including generated code that awaits inside a `$async` schema;
   `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
   `passContext`, `getKeyword`, `removeKeyword`, constructor `keywords`, and
-  `addVocabulary`. The unmodified `ajv-keywords` plugin runs.
+  `addVocabulary`. The unmodified `ajv-keywords` plugin runs, and so does the
+  unmodified `ajv-errors` plugin: with `allErrors: true`, its `errorMessage`
+  keyword replaces the ordinary messages in the report and textual summary
+  exactly where ajv places them.
 - **Strict mode:** the same accept/refuse decisions and messages for unknown
   keywords and formats, misplaced keywords, property/pattern overlap, union
   types, tuples, and `strictRequired`.
