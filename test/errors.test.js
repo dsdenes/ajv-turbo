@@ -17,6 +17,9 @@ const CONFIGURATIONS = [
   ["verbose errors collected", {verbose: true, allErrors: true}],
   ["message-free errors", {messages: false, allErrors: true}],
   ["verbose message-free errors", {verbose: true, messages: false, allErrors: true}],
+  ["property syntax", {jsPropertySyntax: true}],
+  ["property syntax collected", {jsPropertySyntax: true, allErrors: true}],
+  ["property syntax verbose", {jsPropertySyntax: true, verbose: true, allErrors: true}],
 ];
 
 for (const [name, opts] of CONFIGURATIONS) {
@@ -77,6 +80,18 @@ const EDGE_CASES = [
     data: {"x/y": 1, "t\tk": "s"},
   },
   {
+    name: "property syntax quotes nested, indexed, and awkward names",
+    schema: {
+      type: "object",
+      properties: {
+        "q'u\\o/t": {type: "number"},
+        nested: {type: "object", properties: {"a'b": {type: "array", items: {type: "string"}}}},
+      },
+      additionalProperties: {type: "string"},
+    },
+    data: {"q'u\\o/t": "x", nested: {"a'b": ["ok", 1]}, "d'\\/y": 2},
+  },
+  {
     name: "uniqueItems keeps ajv's index pairs",
     schema: {items: {type: "number"}, uniqueItems: true},
     data: [1, 1, 1, 2, 2],
@@ -85,7 +100,11 @@ const EDGE_CASES = [
 
 for (const edge of EDGE_CASES) {
   for (const [name, opts] of CONFIGURATIONS.filter(
-    ([name]) => name === "default" || name === "verbose errors collected" || name === "message-free errors",
+    ([name]) =>
+      name === "default" ||
+      name === "verbose errors collected" ||
+      name === "message-free errors" ||
+      name === "property syntax collected",
   )) {
     test(`error report edge case matches ajv (${edge.name}, ${name})`, () => {
       const AjvReference = require("ajv-reference");

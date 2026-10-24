@@ -32,6 +32,8 @@ test("json-schema-test-suite draft2019-09: replacement verdicts match ajv", () =
 for (const [name, opts] of [
   ["default", {}],
   ["all errors collected", {allErrors: true}],
+  ["property syntax", {jsPropertySyntax: true}],
+  ["property syntax collected", {jsPropertySyntax: true, allErrors: true}],
 ]) {
   test(`json-schema-test-suite draft2019-09: error reports match ajv (${name})`, () => {
     const result = compareErrors(CASES, opts, CLASSES);

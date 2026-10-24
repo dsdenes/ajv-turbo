@@ -408,6 +408,8 @@ test("generated JSON Type Definition validators honour the dialect options", () 
   compareGenerated({timestamp: "date", allErrors: true}, "Date timestamps");
   compareGenerated({timestamp: "string", allErrors: true}, "string timestamps");
   compareGenerated({inlineRefs: false, allErrors: true}, "references not inlined");
+  compareGenerated({jsPropertySyntax: true, allErrors: true}, "property-syntax reporting");
+  compareGenerated({jsPropertySyntax: true}, "property-syntax first-error reporting");
 });
 
 test("generated JSON Type Definition modules export by id, by name map, and every schema", () => {

@@ -197,6 +197,8 @@ for (const [mode, options] of [
   ["verbose first-error report", {verbose: true}],
   ["message-free report", {messages: false, allErrors: true}],
   ["verbose message-free report", {verbose: true, messages: false, allErrors: true}],
+  ["property syntax report", {jsPropertySyntax: true}],
+  ["complete property syntax report", {jsPropertySyntax: true, allErrors: true}],
 ]) {
   test(`JSON Type Definition verdicts and reports match ajv (${mode})`, () => {
     const oracle = new AjvReference(clone(options));
@@ -221,6 +223,39 @@ for (const [mode, options] of [
     assert.strictEqual(compared, CASES.length * DOCUMENTS.length);
   });
 }
+
+test("property syntax reports JSON Type Definition locations with ajv's exact escaping", () => {
+  const pairs = [
+    [
+      {properties: {"q'u\\o/t": {type: "string"}, "x y": {type: "int8"}}, optionalProperties: {"a'b": {type: "string"}}},
+      {"q'u\\o/t": 1, "x y": "z", "a'b": 2},
+    ],
+    [{values: {type: "string"}}, {"d'\\/y": 1}],
+    [{elements: {properties: {"a'b": {type: "string"}}}}, [{"a'b": 1}]],
+    [
+      {discriminator: "kind", mapping: {a: {properties: {"x y": {type: "string"}}}}},
+      {kind: "a", "x y": 1},
+    ],
+  ];
+  for (const options of [{jsPropertySyntax: true}, {jsPropertySyntax: true, allErrors: true}]) {
+    for (const [schema, document] of pairs) {
+      const oracleAjv = new AjvReference(clone(options));
+      const replacementAjv = new AjvReplacement(clone(options));
+      const oracle = oracleAjv.compile(clone(schema));
+      const replacement = replacementAjv.compile(clone(schema));
+      assert.deepStrictEqual(
+        outcome(replacement, document),
+        outcome(oracle, document),
+        JSON.stringify({schema, document, options}),
+      );
+      assert.strictEqual(
+        replacementAjv.errorsText(replacement.errors),
+        oracleAjv.errorsText(oracle.errors),
+        JSON.stringify({schema, document, options}),
+      );
+    }
+  }
+});
 
 test("every JSON Type Definition form produces ajv's verdicts", () => {
   const ajv = new AjvReplacement();

@@ -217,4 +217,163 @@ for (const [mode, options] of [
   }
 }
 
-for (const result of results) process.stdout.write(JSON.stringify(result) + "\n");
+// --- rules that wait on asynchronous work -----------------------------------
+function asyncStartsWith(value, prefix) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value.indexOf(prefix) === 0), 1);
+  });
+}
+
+function asyncWords(value, count) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value.trim().split(/\s+/).length === count), 1);
+  });
+}
+
+function registerAsyncKeywords(instance) {
+  instance.addKeyword({
+    keyword: "asyncStartsWith",
+    type: "string",
+    schemaType: "string",
+    error: {
+      message: ({keyword, schemaCode}) => str`${keyword} requires ${schemaCode}`,
+      params: ({schemaCode}) => _`{prefix: ${schemaCode}}`,
+    },
+    code(cxt) {
+      const {gen, data, schemaCode} = cxt;
+      const check = gen.scopeValue("func", {ref: asyncStartsWith});
+      gen.if(_`!${gen.const("ok", _`await ${check}(${data}, ${schemaCode})`)}`, () => cxt.error());
+    },
+  });
+
+  instance.addKeyword({
+    keyword: "asyncWords",
+    type: "string",
+    schemaType: "number",
+    code(cxt) {
+      const {gen, data, schemaCode} = cxt;
+      const check = gen.scopeValue("func", {ref: asyncWords});
+      gen.if(_`!${gen.const("ok", _`await ${check}(${data}, ${schemaCode})`)}`, () => cxt.error());
+    },
+  });
+
+  instance.addKeyword({
+    keyword: "trimmed",
+    type: "string",
+    schemaType: "boolean",
+    code(cxt) {
+      const {gen, data, schema} = cxt;
+      gen.if(schema, () => {
+        gen.assign(data, _`${data}.trim()`);
+        gen.if(_`${cxt.it.parentData} !== undefined`, () => {
+          gen.assign(_`${cxt.it.parentData}[${cxt.it.parentDataProperty}]`, data);
+        });
+      });
+    },
+  });
+}
+
+async function settle(instance, label, schema, documents) {
+  let validate;
+  try {
+    validate = instance.compile(schema);
+  } catch (error) {
+    results.push({case: label, error: error.message});
+    return;
+  }
+  for (const [name, document] of documents) {
+    const value = document === undefined ? undefined : JSON.parse(JSON.stringify(document));
+    try {
+      const out = await validate(value);
+      results.push({
+        case: `${label} ${name}`,
+        settled: "valid",
+        out,
+        document: value,
+        errors: validate.errors,
+        text: instance.errorsText(validate.errors),
+      });
+    } catch (error) {
+      if (!(error instanceof Ajv.ValidationError)) throw error;
+      results.push({
+        case: `${label} ${name}`,
+        settled: "invalid",
+        errors: error.errors,
+        document: value,
+        text: instance.errorsText(error.errors),
+      });
+    }
+  }
+}
+
+async function runAsyncCases() {
+  for (const [mode, options] of [
+    ["all errors", {allErrors: true}],
+    ["first error", {}],
+  ]) {
+    // The JSON Type Definition meta-schema does not admit `$async`; ajv's own
+    // asynchronous schemas are compiled with the check turned off.
+    const instance = new Ajv({validateSchema: false, ...options});
+    register(instance);
+    registerAsyncKeywords(instance);
+
+    await settle(
+      instance,
+      `${mode} async metadata`,
+      {$async: true, properties: {name: {type: "string", metadata: {asyncStartsWith: "ab"}}}},
+      [
+        ["valid", {name: "abcd"}],
+        ["fails", {name: "xbc"}],
+        ["wrong type", {name: 5}],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async second rule`,
+      {$async: true, metadata: {asyncWords: 2}, nullable: false},
+      [
+        ["valid", "two words"],
+        ["fails", "one"],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async through definition`,
+      {
+        $async: true,
+        definitions: {word: {type: "string", metadata: {asyncStartsWith: "ab"}}},
+        ref: "word",
+      },
+      [
+        ["valid", "abcd"],
+        ["fails", "xbc"],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async rewritten`,
+      {$async: true, properties: {value: {type: "string", metadata: {trimmed: true}}}},
+      [
+        ["valid", {value: "  padded  "}],
+        ["missing", {}],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} sync schema async rule`,
+      {properties: {value: {type: "string", metadata: {asyncStartsWith: "ab"}}}},
+      [["never", {value: "abc"}]],
+    );
+  }
+}
+
+runAsyncCases().then(() => {
+  for (const result of results) process.stdout.write(JSON.stringify(result) + "\n");
+}, (error) => {
+  process.stderr.write(String(error && error.stack) + "\n");
+  process.exit(1);
+});

@@ -273,4 +273,175 @@ try {
   results.push({case: "logged value compiled", error: error.message});
 }
 
-for (const result of results) process.stdout.write(JSON.stringify(result) + "\n");
+// --- rules that wait on asynchronous work -----------------------------------
+// Each definition still contributes generated code; the generated program
+// awaits a promise, which ajv compiles into its asynchronous validator.
+function asyncStartsWith(value, prefix) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value.indexOf(prefix) === 0), 1);
+  });
+}
+
+function asyncWords(value, count) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(value.trim().split(/\s+/).length === count), 1);
+  });
+}
+
+function registerAsyncKeywords(instance) {
+  instance.addKeyword({
+    keyword: "asyncStartsWith",
+    type: "string",
+    schemaType: "string",
+    error: {
+      message: ({keyword, schemaCode}) => str`${keyword} requires ${schemaCode}`,
+      params: ({schemaCode}) => _`{prefix: ${schemaCode}}`,
+    },
+    code(cxt) {
+      const {gen, data, schemaCode} = cxt;
+      const check = gen.scopeValue("func", {ref: asyncStartsWith});
+      gen.if(_`!${gen.const("ok", _`await ${check}(${data}, ${schemaCode})`)}`, () => cxt.error());
+    },
+  });
+
+  instance.addKeyword({
+    keyword: "asyncWords",
+    type: "string",
+    schemaType: "number",
+    code(cxt) {
+      const {gen, data, schemaCode} = cxt;
+      const check = gen.scopeValue("func", {ref: asyncWords});
+      gen.if(_`!${gen.const("ok", _`await ${check}(${data}, ${schemaCode})`)}`, () => cxt.error());
+    },
+  });
+
+  // Generated code that rewrites the document after waiting, assigning the
+  // new value back into its container the way ajv's generated code does.
+  instance.addKeyword({
+    keyword: "trimmed",
+    type: "string",
+    schemaType: "boolean",
+    code(cxt) {
+      const {gen, data, schema} = cxt;
+      gen.if(schema, () => {
+        gen.assign(data, _`${data}.trim()`);
+        gen.if(_`${cxt.it.parentData} !== undefined`, () => {
+          gen.assign(_`${cxt.it.parentData}[${cxt.it.parentDataProperty}]`, data);
+        });
+      });
+    },
+  });
+}
+
+async function settle(instance, label, schema, documents) {
+  let validate;
+  try {
+    validate = instance.compile(schema);
+  } catch (error) {
+    results.push({case: label, error: error.message});
+    return;
+  }
+  for (const [name, document] of documents) {
+    const value = document === undefined ? undefined : JSON.parse(JSON.stringify(document));
+    try {
+      const out = await validate(value);
+      results.push({
+        case: `${label} ${name}`,
+        settled: "valid",
+        out,
+        document: value,
+        errors: validate.errors,
+        text: instance.errorsText(validate.errors),
+      });
+    } catch (error) {
+      if (!(error instanceof Ajv.ValidationError)) throw error;
+      results.push({
+        case: `${label} ${name}`,
+        settled: "invalid",
+        errors: error.errors,
+        document: value,
+        text: instance.errorsText(error.errors),
+      });
+    }
+  }
+}
+
+async function runAsyncCases() {
+  for (const [mode, options] of [
+    ["all errors", {allErrors: true}],
+    ["first error", {}],
+  ]) {
+    const instance = new Ajv({strict: false, $data: true, ...options});
+    registerKeywords(instance);
+    registerAsyncKeywords(instance);
+    instance.addSchema(
+      {$id: "http://example.com/code-keywords/inner", type: "string", asyncStartsWith: "ab"},
+      "inner",
+    );
+
+    await settle(
+      instance,
+      `${mode} async rule`,
+      {$async: true, type: "object", properties: {value: {type: "string", asyncStartsWith: "ab"}}},
+      [
+        ["valid", {value: "abcd"}],
+        ["fails", {value: "xbc"}],
+        ["wrong type", {value: 5}],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async rule second`,
+      {$async: true, type: "string", asyncWords: 2, minLength: 2},
+      [
+        ["valid", "two words"],
+        ["fails", "one"],
+        ["both fail", ""],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async schema sync rule`,
+      {$async: true, type: "string", startsWith: "ab"},
+      [
+        ["valid", "abc"],
+        ["fails", "xbc"],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async inlined reference`,
+      {$async: true, properties: {value: {$ref: "http://example.com/code-keywords/inner"}}},
+      [
+        ["valid", {value: "abc"}],
+        ["fails", {value: "xbc"}],
+      ],
+    );
+
+    await settle(
+      instance,
+      `${mode} async rewritten`,
+      {$async: true, type: "object", properties: {value: {type: "string", trimmed: true}}},
+      [
+        ["valid", {value: "  padded  "}],
+        ["root", "  root  "],
+      ],
+    );
+
+    // A schema that does not request asynchronous validation refuses the rule
+    // with ajv's compile-time message.
+    await settle(instance, `${mode} sync schema async rule`, {type: "string", asyncStartsWith: "ab"}, [
+      ["never", "abc"],
+    ]);
+  }
+}
+
+runAsyncCases().then(() => {
+  for (const result of results) process.stdout.write(JSON.stringify(result) + "\n");
+}, (error) => {
+  process.stderr.write(String(error && error.stack) + "\n");
+  process.exit(1);
+});

@@ -116,7 +116,8 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `validateFormats: false`, and the unmodified `ajv-formats` plugin, including
   its range keywords and fast mode.
 - **Custom keywords:** `validate`, `compile`, `macro`, and generated `code`
-  forms; `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
+  forms, including generated code that awaits inside a `$async` schema;
+  `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
   `passContext`, `getKeyword`, `removeKeyword`, constructor `keywords`, and
   `addVocabulary`. The unmodified `ajv-keywords` plugin runs.
 - **Strict mode:** the same accept/refuse decisions and messages for unknown
@@ -126,12 +127,13 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `removeAdditional`, `ownProperties`, `strictNumbers`, `multipleOfPrecision`,
   `nullable`, `unicodeRegExp`, `unicode` (code-point counting when absent or
   `true`, UTF-16 code-unit counting when `false`), `discriminator`, `$data`,
-  `$comment` (logged or
-  through a callback, with ajv's text, schema path, and root schema),
-  `ignoreKeywordsWithRef` (the deprecated request to honour a reference alone,
-  ignoring the constraints beside it), `logger`, and `uriResolver`, plus ajv's
-  diagnostics for removed and deprecated settings: the same severity, wording,
-  order, and console output.
+  `$comment` (logged or through a callback, with ajv's text, schema path, and
+  root schema), `ignoreKeywordsWithRef` (the deprecated request to honour a
+  reference alone, ignoring the constraints beside it), `logger`, and
+  `uriResolver`, plus ajv's diagnostics for removed and deprecated settings:
+  the same severity, wording, order, and console output. The deprecated
+  `jsPropertySyntax` switch also works: bracket property notation for reported
+  instance locations.
 - **Code rewriting:** `code.process` receives the source of every validator the
   instance compiles, once per compilation and in compile order, and the source
   it returns defines the validator that validates documents. A rewrite that
@@ -166,7 +168,7 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   code-generation surface. Schema annotations keep their inferred types, so an
   unchanged typed project compiles against this package.
 
-Not covered: asynchronous keywords written in the code form, standalone
+Not covered: `$data` on the JSON Type Definition entry point, standalone
 parser/serializer modules, and dialects other than draft-06/07, 2019-09,
 2020-12, and JSON Type Definition.
 
