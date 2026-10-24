@@ -1,0 +1,6 @@
+{
+  "name": "code-process-project",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Unchanged project that rewrites the source of every validator it compiles"
+}
