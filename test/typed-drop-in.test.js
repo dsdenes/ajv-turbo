@@ -75,6 +75,34 @@ test("a typed ajv project compiles and validates unchanged when the replacement 
     reference.some((result) => result.name === "async.invalid" && result.valid === false),
     "expected an invalid asynchronous case",
   );
+  for (const name of [
+    "runtime.equal.match",
+    "runtime.equal.mismatch",
+    "runtime.ucs2length.ascii",
+    "runtime.ucs2length.astral",
+    "runtime.timestamp.valid",
+    "runtime.timestamp.invalid",
+    "runtime.quote",
+    "runtime.uri",
+    "runtime.parse-json",
+    "runtime.parse-json-number",
+    "runtime.parse-json-string",
+  ]) {
+    assert.ok(
+      reference.some((result) => result.name === name),
+      `expected the ${name} runtime helper case`,
+    );
+  }
+  assert.ok(
+    reference.some(
+      (result) =>
+        result.name === "runtime.validation-error" &&
+        result.recognised === true &&
+        result.validation === true &&
+        result.ajv === true,
+    ),
+    "expected the asynchronous failure to be the runtime ValidationError",
+  );
 
   // Every type ajv publishes from an entry point resolves from the same entry
   // point of the replacement, and the replacement's values are accepted where

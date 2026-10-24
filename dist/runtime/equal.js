@@ -1,5 +1,9 @@
 "use strict";
 
+// Mirror ajv's compiled modules: the marker makes TypeScript's default-import
+// interop unwrap `.default` instead of handing back the exports object.
+Object.defineProperty(exports, "__esModule", {value: true});
+
 // The equality runtime ajv's generated validators require by path. Its
 // semantics are fast-deep-equal's, which is what ajv uses for `enum`, `const`,
 // and `uniqueItems`, so a validator ajv generated keeps deciding equality the
