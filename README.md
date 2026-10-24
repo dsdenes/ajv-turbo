@@ -109,9 +109,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   `unevaluatedProperties`/`unevaluatedItems` with ajv's evaluated-name
   tracking, `prefixItems`, vocabulary meta-schemas, and matching compile-time
   schema validation.
-- **JSON Type Definition:** every schema form, `compileSerializer` and
-  `compileParser` with ajv's messages and offsets, plus standalone generation
-  for all three.
+- **JSON Type Definition:** every schema form, custom keywords whose values
+  name a document location, `compileSerializer` and `compileParser` with ajv's
+  messages and offsets, plus standalone generation for all three.
 - **Formats:** every `addFormat` form, constructor `formats`,
   `validateFormats: false`, and the unmodified `ajv-formats` plugin, including
   its range keywords and fast mode.
@@ -158,9 +158,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   code-generation surface. Schema annotations keep their inferred types, so an
   unchanged typed project compiles against this package.
 
-Not covered: asynchronous keywords written in the code form, `$data` on the
-JSON Type Definition entry point, standalone parser/serializer modules, and
-dialects other than draft-06/07, 2019-09, 2020-12, and JSON Type Definition.
+Not covered: asynchronous keywords written in the code form, standalone
+parser/serializer modules, and dialects other than draft-06/07, 2019-09,
+2020-12, and JSON Type Definition.
 
 ## Verification
 
