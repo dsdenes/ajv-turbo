@@ -6,8 +6,9 @@ every entry point ajv presents to consumers — draft-07 by default, 2019-09,
 helpers extension authors import, and the runtime helpers generated validators
 require — and returns ajv's verdict and error report for the covered surface,
 including formats, custom keywords, `$data`, discriminators, asynchronous
-validation, and standalone validators. Its only runtime dependency is the URI
-resolver `fast-uri`, the same one ajv uses.
+validation, standalone validators, and the location, container, and document
+root a caller supplies to a compiled validator. Its only runtime dependency is
+the URI resolver `fast-uri`, the same one ajv uses.
 
 ## Benchmark
 
@@ -109,14 +110,15 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   tracking, the evaluated-location account a compiled validator publishes,
   `prefixItems`, vocabulary meta-schemas, and matching compile-time schema
   validation.
-- **JSON Type Definition:** every schema form, `compileSerializer` and
-  `compileParser` with ajv's messages and offsets, plus standalone generation
-  for all three.
+- **JSON Type Definition:** every schema form, custom keywords whose values
+  name a document location, `compileSerializer` and `compileParser` with ajv's
+  messages and offsets, plus standalone generation for all three.
 - **Formats:** every `addFormat` form, constructor `formats`,
   `validateFormats: false`, and the unmodified `ajv-formats` plugin, including
   its range keywords and fast mode.
 - **Custom keywords:** `validate`, `compile`, `macro`, and generated `code`
-  forms; `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
+  forms, including generated code that awaits inside a `$async` schema;
+  `metaSchema`, `before`, `post`, `implements`, `$data`, `$dataError`,
   `passContext`, `getKeyword`, `removeKeyword`, constructor `keywords`, and
   `addVocabulary`. The unmodified `ajv-keywords` plugin runs.
 - **Strict mode:** the same accept/refuse decisions and messages for unknown
@@ -124,9 +126,21 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   types, tuples, and `strictRequired`.
 - **Options:** `allErrors`, `verbose`, `messages`, `coerceTypes`, `useDefaults`,
   `removeAdditional`, `ownProperties`, `strictNumbers`, `multipleOfPrecision`,
-  `nullable`, `unicodeRegExp`, `discriminator`, `$data`, `$comment` (logged or
-  through a callback, with ajv's text, schema path, and root schema),
-  `logger`, and `uriResolver`.
+  `nullable`, `unicodeRegExp`, `unicode` (code-point counting when absent or
+  `true`, UTF-16 code-unit counting when `false`), `discriminator`, `$data`,
+  `$comment` (logged or through a callback, with ajv's text, schema path, and
+  root schema), `ignoreKeywordsWithRef` (the deprecated request to honour a
+  reference alone, ignoring the constraints beside it), `logger`, and
+  `uriResolver`, plus ajv's diagnostics for removed and deprecated settings:
+  the same severity, wording, order, and console output. The deprecated
+  `jsPropertySyntax` switch also works: bracket property notation for reported
+  instance locations.
+- **Code rewriting:** `code.process` receives the source of every validator the
+  instance compiles, once per compilation and in compile order, and the source
+  it returns defines the validator that validates documents. A rewrite that
+  throws fails compilation with its own error and leaves no validator behind,
+  and standalone modules keep the verdicts and reports of the unrewritten
+  validator.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
   `parse`, `serialize`, and `resolve` — decides how schema identifiers and
   references are formed, resolved, and compared, including identifiers the
@@ -155,9 +169,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   code-generation surface. Schema annotations keep their inferred types, so an
   unchanged typed project compiles against this package.
 
-Not covered: asynchronous keywords written in the code form, `$data` on the
-JSON Type Definition entry point, standalone parser/serializer modules, and
-dialects other than draft-06/07, 2019-09, 2020-12, and JSON Type Definition.
+Not covered: `$data` on the JSON Type Definition entry point, standalone
+parser/serializer modules, and dialects other than draft-06/07, 2019-09,
+2020-12, and JSON Type Definition.
 
 ## Verification
 
@@ -170,11 +184,12 @@ npm run verify  # prints the ajv verdict comparison
 The suite runs unchanged projects first with ajv and then with this package
 installed in its place, requiring identical output, including a project that
 loads missing references during asynchronous compilation, a project that
-supplies its own schema identifier strategy, and a TypeScript project that
-type-checks against ajv's published schema types. It also runs the complete
-published 2019-09 and 2020-12 conformance corpora, every published benchmark
-case, and each JSON Type Definition serializer, parser, and generated module
-against ajv's.
+supplies its own schema identifier strategy, a project whose removed and
+deprecated settings must report ajv's diagnostics, and a TypeScript project
+that type-checks against ajv's published schema types. It also runs the
+complete published 2019-09 and 2020-12 conformance corpora, every published
+benchmark case, and each JSON Type Definition serializer, parser, and
+generated module against ajv's.
 
 ## Layout
 
