@@ -132,6 +132,12 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
   ignoring the constraints beside it), `logger`, and `uriResolver`, plus ajv's
   diagnostics for removed and deprecated settings: the same severity, wording,
   order, and console output.
+- **Code rewriting:** `code.process` receives the source of every validator the
+  instance compiles, once per compilation and in compile order, and the source
+  it returns defines the validator that validates documents. A rewrite that
+  throws fails compilation with its own error and leaves no validator behind,
+  and standalone modules keep the verdicts and reports of the unrewritten
+  validator.
 - **Custom identifier resolution:** a project-supplied `uriResolver` — its
   `parse`, `serialize`, and `resolve` — decides how schema identifiers and
   references are formed, resolved, and compared, including identifiers the
