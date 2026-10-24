@@ -184,6 +184,14 @@ test("standalone validators suppress messages like ajv's", () => {
   assert.ok(compared > 500);
 });
 
+test("standalone validators report ajv's property-syntax locations when asked", () => {
+  const {compared} = compareGenerated(
+    {jsPropertySyntax: true, allErrors: true},
+    "property-syntax reporting",
+  );
+  assert.ok(compared > 500);
+});
+
 // A tagged union whose branches reject properties no member allows, so a
 // generated validator must run the selected branch and its report, not the
 // oneOf rule.
