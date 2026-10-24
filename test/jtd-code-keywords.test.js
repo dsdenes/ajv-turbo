@@ -157,4 +157,22 @@ test("a JTD project with generated-code custom keywords runs unchanged", () => {
     assert.match(row(name).error, /^schema is invalid: /, name);
     assert.match(row(name).error, /must NOT have additional properties|must have property/, name);
   }
+
+  // A generated-code rule that awaits settles with ajv's outcome, report, and
+  // error order on the JSON Type Definition entry point too.
+  assert.strictEqual(row("all errors async metadata valid").settled, "valid");
+  assert.deepStrictEqual(row("all errors async metadata valid").out, {name: "abcd"});
+  assert.strictEqual(row("all errors async metadata fails").settled, "invalid");
+  assert.strictEqual(row("all errors async metadata fails").errors[0].keyword, "asyncStartsWith");
+  assert.strictEqual(
+    row("all errors async metadata fails").errors[0].schemaPath,
+    "/properties/name/metadata/asyncStartsWith",
+  );
+  assert.deepStrictEqual(row("all errors async metadata fails").errors[0].params, {prefix: "ab"});
+  assert.strictEqual(row("first error async metadata fails").errors.length, 1);
+  assert.strictEqual(row("all errors async second rule valid").settled, "valid");
+  assert.strictEqual(row("all errors async second rule fails").settled, "invalid");
+  assert.strictEqual(row("all errors async through definition fails").settled, "invalid");
+  assert.deepStrictEqual(row("all errors async rewritten valid").document, {value: "padded"});
+  assert.match(row("first error sync schema async rule").error, /^await is only valid/);
 });
