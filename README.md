@@ -106,8 +106,9 @@ ajv.addMetaSchema(require("@dsdenes/ajv-turbo/dist/refs/json-schema-draft-06.jso
 - **2019-09 and 2020-12:** dynamic references, `$recursiveRef`,
   `dependentRequired`/`dependentSchemas`, bounded `contains`,
   `unevaluatedProperties`/`unevaluatedItems` with ajv's evaluated-name
-  tracking, `prefixItems`, vocabulary meta-schemas, and matching compile-time
-  schema validation.
+  tracking, the evaluated-location account a compiled validator publishes,
+  `prefixItems`, vocabulary meta-schemas, and matching compile-time schema
+  validation.
 - **JSON Type Definition:** every schema form, `compileSerializer` and
   `compileParser` with ajv's messages and offsets, plus standalone generation
   for all three.
